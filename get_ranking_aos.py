@@ -103,5 +103,5 @@ with get_connection() as conn:
                             (app_id[0], json_response['name'], json_response['image'], RATING, RATING_COUNT, json_response['applicationCategory'], INSTALLS, json_response['offers'][0]['price'], detail['developer_id'], detail['developer']))
 
 with open(LOG, mode='a') as f:
-    f.write("get_ranking_aos: "+str(datetime.datetime.now())+"\n")
+    f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": get_ranking_aos\n")
 
