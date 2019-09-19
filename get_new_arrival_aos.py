@@ -58,5 +58,5 @@ for COLLECTION_NAME in ['NEW_FREE', 'TOP_FREE']:
                         count=count+1
 
 with open(LOG, mode='a') as f:
-    f.write("get_new_arrival_aos: "+str(datetime.datetime.now())+"\n")
+    f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": get_new_arrival_aos\n")
 
