@@ -76,7 +76,6 @@ with get_connection() as conn:
             HISTOGRAM={}
             if detail['histogram'] != {}:
                 for h in detail['histogram'].items():
-                    print("0")
                     if h[1] is None:
                         HISTOGRAM[h[0]]=0
                     else:
