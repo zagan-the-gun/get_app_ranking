@@ -49,9 +49,10 @@ with get_connection() as conn:
                     if -1 != j.string.find("""AF_initDataCallback({key: 'ds:5"""):
                         json_detail = json.loads(j.string[86:-4])
 
-
             # スクレイピング3
             detail = play_scraper.details(app_id[0])
+            # ランゲージ選択するとインストール数とか諸々数字が取れなくなるバグがあるのでしょうがない
+            detail_ja = play_scraper.details(app_id[0], hl='ja')
 
             #if 'aggregateRating' in json_response:
             # レーティングチェック
@@ -71,6 +72,26 @@ with get_connection() as conn:
             else:
                 INSTALLS = 0
 
+            # ヒストグラムチェック
+            HISTOGRAM={}
+            for h in detail['histogram'].items():
+                if h[1] is None:
+                    HISTOGRAM[h[0]]=0
+                else:
+                    HISTOGRAM[h[0]]=h[1]
+
+            # スクリーンショットjson化
+            if detail['screenshots'] is not None:
+                SCREENSHOTS = str(detail['screenshots']).replace("\'", "\"")
+            else:
+                SCREENSHOTS = ""
+
+            # コンテンツレーティングjson化
+            if detail['content_rating'] is not None:
+                CONTENT_RATING = str(detail['content_rating']).replace("\'", "\"")
+            else:
+                CONTENT_RATING = ""
+
             if DEBUG:
                 print("----------------------")
                 print("app_id            : {}".format(app_id[0]))
@@ -83,20 +104,81 @@ with get_connection() as conn:
                 print("rating_count      : {}".format(RATING_COUNT))
                 print("rating_update_at  : -now-")
                 print("genere            : {}".format(json_response['applicationCategory']))
-                #print("installs:          {}".format(json_detail[0][12][9][2]))
                 print("installs          : {}".format(INSTALLS))
                 print("price             : {}".format(json_response['offers'][0]['price']))
-                #print("publisher_id:      {}".format(json_detail[0][12][5][0][0]))
                 print("publisher_id      : {}".format(detail['developer_id']))
-                #print("publisher_name:    {}".format(json_detail[0][12][5][1]))
                 print("publisher_name    : {}".format(detail['developer']))
+#                print("release_at        : {}".format("NULL"))
+                print("description       : {}".format(detail_ja['description']))
+                print("screenshots       : {}".format(SCREENSHOTS))
+                print("video             : {}".format(detail['video']))
+                print("content_rating    : {}".format(CONTENT_RATING))
+                print("reviews           : {}".format(detail['reviews']))
+                print("histogram1        : {}".format(HISTOGRAM[1]))
+                print("histogram2        : {}".format(HISTOGRAM[2]))
+                print("histogram3        : {}".format(HISTOGRAM[3]))
+                print("histogram4        : {}".format(HISTOGRAM[4]))
+                print("histogram5        : {}".format(HISTOGRAM[5]))
 
             # redshiftに詳細データを書き込む
             with get_connection() as conn:
                 with conn.cursor() as cur:
-                    cur.execute("INSERT INTO superset_schema.app_details (app_id, app_name, platform, icon_url, ranking, ranking_update_at, rating, rating_count, rating_update_at, genre, installs, price, publisher_id, publisher_name, created_at) SELECT %s, %s, 1, %s, 0, convert_timezone('jst', sysdate), %s, %s, convert_timezone('jst', sysdate), %s, %s, %s, %s, %s, convert_timezone('jst', sysdate) where not exists ( select app_id from superset_schema.app_details where app_id = %s); ",
-                            (app_id[0], json_response['name'], json_response['image'], RATING, RATING_COUNT, json_response['applicationCategory'], INSTALLS, json_response['offers'][0]['price'], detail['developer_id'], detail['developer'], app_id[0]))
+                    cur.execute("INSERT INTO superset_schema.app_details (\
+                            app_id, \
+                            app_name, \
+                            platform, \
+                            icon_url, \
+                            ranking, \
+                            ranking_update_at, \
+                            rating, \
+                            rating_count, \
+                            rating_update_at, \
+                            genre, \
+                            installs, \
+                            price, \
+                            publisher_id, \
+                            publisher_name, \
+                            description, \
+                            screenshots, \
+                            video, \
+                            content_rating, \
+                            reviews, \
+                            histogram1, \
+                            histogram2, \
+                            histogram3, \
+                            histogram4, \
+                            histogram5, \
+                            is_release, \
+                            updated_at, \
+                            created_at\
+                            ) SELECT \
+                            %s, %s, 1, %s, 0, convert_timezone('jst', sysdate), %s, %s, convert_timezone('jst', sysdate), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, TRUE, convert_timezone('jst', sysdate), convert_timezone('jst', sysdate) where not exists ( \
+                            select app_id from superset_schema.app_details where app_id = %s); ",
+                            (\
+                                    app_id[0], \
+                                    json_response['name'], \
+                                    json_response['image'], \
+                                    RATING, \
+                                    RATING_COUNT, \
+                                    json_response['applicationCategory'], \
+                                    INSTALLS, \
+                                    json_response['offers'][0]['price'], \
+                                    detail['developer_id'], \
+                                    detail['developer'], \
+                                    detail_ja['description'], \
+                                    SCREENSHOTS, \
+                                    detail['video'], \
+                                    CONTENT_RATING, \
+                                    str(detail['reviews']), \
+                                    str(HISTOGRAM[1]), \
+                                    str(HISTOGRAM[2]), \
+                                    str(HISTOGRAM[3]), \
+                                    str(HISTOGRAM[4]), \
+                                    str(HISTOGRAM[5]), \
+                                    app_id[0]\
+                            )\
+                    )
 
 with open(LOG, mode='a') as f:
-    f.write("get_details_aos: "+str(datetime.datetime.now())+"\n")
+    f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": get_details_aos\n")
 
