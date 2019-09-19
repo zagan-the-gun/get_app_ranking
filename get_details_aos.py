@@ -74,11 +74,16 @@ with get_connection() as conn:
 
             # ヒストグラムチェック
             HISTOGRAM={}
-            for h in detail['histogram'].items():
-                if h[1] is None:
-                    HISTOGRAM[h[0]]=0
-                else:
-                    HISTOGRAM[h[0]]=h[1]
+            if detail['histogram'] != {}:
+                for h in detail['histogram'].items():
+                    print("0")
+                    if h[1] is None:
+                        HISTOGRAM[h[0]]=0
+                    else:
+                        HISTOGRAM[h[0]]=h[1]
+            else:
+                for i in range(1, 6):
+                    HISTOGRAM[i]=0
 
             # スクリーンショットjson化
             if detail['screenshots'] is not None:
