@@ -18,7 +18,7 @@ jst = pytz.timezone('Asia/Tokyo')
 DATABASE_URL='postgresql://'+ args[1] + ':' + args[2] + '@'+ args[3] + ':5439/'+ args[4]
 LOG='/tmp/superset.log'
 DEBUG=True
-SLACK_URL='https://hooks.slack.com/services/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'
+SLACK_URL=args[5]
 
 def get_connection():
     return psycopg2.connect(DATABASE_URL)
@@ -68,7 +68,7 @@ with get_connection() as conn:
                             .format(icon_url=app[0]['icon_url'], app_id=app[0]['app_id'], app_name=app[0]['app_name'], genre=app[0]['genre'], content_rating=app[0]['content_rating'], publisher_id=app[0]['publisher_id'], publisher_name=app[0]['publisher_name'], rating=app[0]['rating'], rating_count=app[0]['rating_count'], reviews=app[0]['reviews'], description=app[0]['description'], screenshots=SCREENSHOTS, video=app[0]['video'], installs=app[0]['installs'])
 
                     # Slackに死亡を報告
-                    requests.post(SLACK_URL, data = json.dumps({
+                    requests.post("https://hooks.slack.com/services/" + SLACK_URL, data = json.dumps({
                         'text': text,  #通知内容
                         'username': u'確認',  #ユーザー名
                         'icon_emoji': u':smile_cat:',  #アイコン
@@ -110,7 +110,7 @@ with get_connection() as conn:
                             .format(icon_url=app[0]['icon_url'], app_id=app[0]['app_id'], app_name=app[0]['app_name'], revival_date=REVIVAL_DATE, genre=app[0]['genre'], content_rating=app[0]['content_rating'], publisher_id=app[0]['publisher_id'], publisher_name=app[0]['publisher_name'], rating=app[0]['rating'], rating_count=app[0]['rating_count'], reviews=app[0]['reviews'], description=app[0]['description'], screenshots=SCREENSHOTS, video=app[0]['video'], installs=app[0]['installs'])
 
                     # Slackに生存を報告
-                    requests.post(SLACK_URL, data = json.dumps({
+                    requests.post("https://hooks.slack.com/services/" + SLACK_URL, data = json.dumps({
                         'text': text,  #通知内容
                         'username': u'確認',  #ユーザー名
                         'icon_emoji': u':smile_cat:',  #アイコン
