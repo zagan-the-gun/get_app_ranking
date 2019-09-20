@@ -37,9 +37,15 @@ with get_connection() as conn:
             r = requests.get(target_url)
             soup = BeautifulSoup(r.text, 'lxml') #要素を抽出
             if soup.find('script', type="application/ld+json") is None:
+
+                with get_connection() as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("UPDATE superset_schema.app_details SET is_release = FALSE, updated_at = convert_timezone('jst', sysdate) WHERE app_id = '{}'".format(app_id[0]))
                 if DEBUG:
-                    print("app is dead")
+                    print("app is dead {}".format(app_id[0]))
+
                 continue
+
             json_response = json.loads(soup.find('script', type="application/ld+json").string)
 
 
@@ -53,6 +59,8 @@ with get_connection() as conn:
 
             # スクレイピング3
             detail = play_scraper.details(app_id[0])
+            # ランゲージ選択するとインストール数とか諸々数字が取れなくなるバグがあるのでしょうがない
+            detail_ja = play_scraper.details(app_id[0], hl='ja')
 
             # レーティングチェック
             # 誰にも評価されてないと空っぽ?
@@ -71,6 +79,29 @@ with get_connection() as conn:
             else:
                 INSTALLS = 0
 
+            # ヒストグラムチェック
+            HISTOGRAM={}
+            if detail['histogram'] != {}:
+                for h in detail['histogram'].items():
+                    if h[1] is None:
+                        HISTOGRAM[h[0]]=0
+                    else:
+                        HISTOGRAM[h[0]]=h[1]
+            else:
+                for i in range(1, 6):
+                    HISTOGRAM[i]=0
+
+            # スクリーンショットjson化
+            if detail['screenshots'] is not None:
+                SCREENSHOTS = str(detail['screenshots']).replace("\'", "\"")
+            else:
+                SCREENSHOTS = ""
+
+            # コンテンツレーティングjson化
+            if detail['content_rating'] is not None:
+                CONTENT_RATING = str(detail['content_rating']).replace("\'", "\"")
+            else:
+                CONTENT_RATING = ""
 
             if DEBUG:
                 print("----------------------")
@@ -91,16 +122,22 @@ with get_connection() as conn:
                 print("publisher_id      : {}".format(detail['developer_id']))
                 #print("publisher_name:    {}".format(json_detail[0][12][5][1]))
                 print("publisher_name    : {}".format(detail['developer']))
+                print("reviews           : {}".format(detail['reviews']))
+                print("histogram1        : {}".format(HISTOGRAM[1]))
+                print("histogram2        : {}".format(HISTOGRAM[2]))
+                print("histogram3        : {}".format(HISTOGRAM[3]))
+                print("histogram4        : {}".format(HISTOGRAM[4]))
+                print("histogram5        : {}".format(HISTOGRAM[5]))
 
             # redshiftに詳細データの更新を書き込む
             with get_connection() as conn:
                 with conn.cursor() as cur:
                     # 詳細データ更新
-                    cur.execute("UPDATE superset_schema.app_details SET rating = %s, rating_count = %s, rating_update_at = convert_timezone('jst', sysdate), installs = %s WHERE app_id = %s;",
-                            (RATING, RATING_COUNT, INSTALLS, app_id[0]))
+                    cur.execute("UPDATE superset_schema.app_details SET app_name = %s, icon_url = %s, rating = %s, rating_count = %s, rating_update_at = convert_timezone('jst', sysdate), genre = %s, installs = %s, price = %s, publisher_id = %s, publisher_name = %s, description = %s, screenshots = %s, video = %s, content_rating = %s, reviews = %s, histogram1 = %s, histogram2 = %s, histogram3 = %s, histogram4 = %s, histogram5 = %s, is_release = TRUE, updated_at = convert_timezone('jst', sysdate) WHERE app_id = %s;",
+                            (json_response['name'], json_response['image'], RATING, RATING_COUNT, json_response['applicationCategory'], INSTALLS, json_response['offers'][0]['price'], detail['developer_id'], detail['developer'], detail_ja['description'], SCREENSHOTS, detail['video'], CONTENT_RATING, detail['reviews'], HISTOGRAM[1], HISTOGRAM[2], HISTOGRAM[3], HISTOGRAM[4], HISTOGRAM[5], app_id[0]))
                     # ランキングデータ追加
-                    cur.execute("INSERT INTO superset_schema.app_rankings (app_id, app_name, platform, icon_url, ranking, rating, rating_count, genre, installs, price, publisher_id, publisher_name, created_at) SELECT %s, %s, 1, %s, 0, %s, %s, %s, %s, %s, %s, %s, convert_timezone('jst', sysdate); ",
-                            (app_id[0], json_response['name'], json_response['image'], RATING, RATING_COUNT, json_response['applicationCategory'], INSTALLS, json_response['offers'][0]['price'], detail['developer_id'], detail['developer']))
+                    cur.execute("INSERT INTO superset_schema.app_rankings (app_id, app_name, platform, icon_url, ranking, rating, rating_count, genre, installs, price, publisher_id, publisher_name, reviews, histogram1, histogram2, histogram3, histogram4, histogram5, created_at) SELECT %s, %s, 1, %s, 0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, convert_timezone('jst', sysdate); ",
+                            (app_id[0], json_response['name'], json_response['image'], RATING, RATING_COUNT, json_response['applicationCategory'], INSTALLS, json_response['offers'][0]['price'], detail['developer_id'], detail['developer'], detail['reviews'], HISTOGRAM[1], HISTOGRAM[2], HISTOGRAM[3], HISTOGRAM[4], HISTOGRAM[5]))
 
 with open(LOG, mode='a') as f:
     f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": get_ranking_aos\n")
