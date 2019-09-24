@@ -4,21 +4,18 @@
 import requests
 import json
 from bs4 import BeautifulSoup
-
 import os
 import psycopg2
-
 import play_scraper
-
 import datetime
-
 import sys
 
 args = sys.argv
 
 DATABASE_URL='postgresql://'+ args[1] + ':' + args[2] + '@'+ args[3] + ':5439/'+ args[4]
 LOG='/tmp/superset.log'
-DEBUG=False
+DEBUG=True
+SLACK_URL=args[5]
 
 def get_connection():
     return psycopg2.connect(DATABASE_URL)
@@ -123,6 +120,17 @@ with get_connection() as conn:
                 print("histogram3        : {}".format(HISTOGRAM[3]))
                 print("histogram4        : {}".format(HISTOGRAM[4]))
                 print("histogram5        : {}".format(HISTOGRAM[5]))
+
+            # slackに通知
+            text="{icon_url}\n<https://play.google.com/store/apps/details?id={app_id} | {app_name}> のアプリが追加されました"\
+                    .format(icon_url=json_response['image'], app_id=app_id[0], app_name=json_response['name'])
+
+            requests.post("https://hooks.slack.com/services/" + SLACK_URL, data = json.dumps({
+                'text': text,  #通知内容
+                'username': u'新規追加',  #ユーザー名
+                'icon_emoji': u':smile_cat:',  #アイコン
+                'link_names': 1,  #名前をリンク化
+            }))
 
             # redshiftに詳細データを書き込む
             with get_connection() as conn:
