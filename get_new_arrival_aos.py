@@ -1,7 +1,8 @@
-#!/bin/python3.7
+#!/usr/bin/python3.7
 # -*- coding: utf8 -*-
 
 import requests
+import json
 from bs4 import BeautifulSoup
 
 import os
@@ -17,7 +18,7 @@ args = sys.argv
 
 DATABASE_URL='postgresql://'+ args[1] + ':' + args[2] + '@'+ args[3] + ':5439/'+ args[4]
 LOG='/tmp/superset.log'
-DEBUG=False
+DEBUG=True
 
 def get_connection():
     return psycopg2.connect(DATABASE_URL)
@@ -26,20 +27,27 @@ def get_connection():
 #target_url = 'https://play.google.com/store/apps/collection/topselling_new_free?hl=ja'
 #target_url = 'http://play.google.com/store/apps/category/GAME/collection/topselling_new_free?authuser=0'
 #target_url = 'https://play.google.com/store/apps/category/GAME_RACING/collection/topselling_new_free'
-target_url = 'https://play.google.com/store/apps/collection/cluster?clp=0g4gCh4KGHRvcHNlbGxpbmdfbmV3X2ZyZWVfR0FNRRAHGAM%3D:S:ANO1ljIxjbU'
+target_url = 'https://play.google.com/store/apps/collection/cluster?clp=CiAKHgoYdG9wc2VsbGluZ19uZXdfZnJlZV9HQU1FEAcYAw%3D%3D:S:ANO1ljJaN44'
 r = requests.get(target_url)         #requestsを使って、webから取得
 soup = BeautifulSoup(r.text, 'lxml') #要素を抽出
 
 with get_connection() as conn:
     with conn.cursor() as cur:
         i=1
-        for div in soup.find_all('div', class_="card-content id-track-click id-track-impression"):
-            cur.execute("INSERT INTO superset_schema.app_ids(app_id, platform, created_at) SELECT '" + div['data-docid'] + "', 1, CONVERT_TIMEZONE('JST', SYSDATE) WHERE NOT EXISTS ( SELECT app_id FROM superset_schema.app_ids WHERE app_id = '" + div['data-docid'] + "'); ")
-            if DEBUG:
-                print(str(i) + ": " + div['data-docid'])
-            i=i+1
+        json_detail={}
+        for j in soup.find_all('script'):
+            if j.string is not None:
+                if -1 != j.string.find("""AF_initDataCallback({key: 'ds:3"""):
+                    json_detail = json.loads(j.string[86:-4])
+                    for app_id in json_detail[0][1][0][0][0]:
+                        cur.execute("INSERT INTO superset_schema.app_ids(app_id, platform, created_at) SELECT '" + app_id[12][0] + "', 1, CONVERT_TIMEZONE('JST', SYSDATE) WHERE NOT EXISTS ( SELECT app_id FROM superset_schema.app_ids WHERE app_id = '" + app_id[12][0] + "'); ")
+                        if DEBUG:
+                            print(str(i) + ": " + app_id[12][0])
+                        i=i+1
+
 
 # 簡単にスクレイピング
+# Todo コネクション多すぎるのでforをコネクションの中に入れる
 count=1
 for COLLECTION_NAME in ['NEW_FREE', 'TOP_FREE']:
     for i in range(5):
