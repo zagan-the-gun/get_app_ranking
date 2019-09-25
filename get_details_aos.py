@@ -23,7 +23,7 @@ def get_connection():
 # redshiftからapp_idリストを取得 joinで不足分だけに変更する
 with get_connection() as conn:
     with conn.cursor() as cur:
-        cur.execute("SELECT app_id FROM superset_schema.app_ids EXCEPT SELECT app_id FROM superset_schema.app_details;")
+        cur.execute("SELECT app_id FROM superset_schema.app_ids WHERE platform = 1  EXCEPT SELECT app_id FROM superset_schema.app_details WHERE platform = 1;")
         for app_id in cur:
 
             # google playからページ取得

@@ -36,7 +36,7 @@ def get_dict_resultset(sql):
 # redshiftからapp_idを取得する
 with get_connection() as conn:
     with conn.cursor() as cur:
-        cur.execute("SELECT app_id, is_release FROM superset_schema.app_details")
+        cur.execute("SELECT app_id, is_release FROM superset_schema.app_details WHERE platform = 1;")
 
         for app_id in cur:
 

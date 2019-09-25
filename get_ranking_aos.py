@@ -18,7 +18,7 @@ args = sys.argv
 
 DATABASE_URL='postgresql://'+ args[1] + ':' + args[2] + '@'+ args[3] + ':5439/'+ args[4]
 LOG='/tmp/superset.log'
-DEBUG=False
+DEBUG=True
 
 def get_connection():
     return psycopg2.connect(DATABASE_URL)
@@ -26,7 +26,7 @@ def get_connection():
 # redshiftからランキング更新前のapp_idを取得する
 with get_connection() as conn:
     with conn.cursor() as cur:
-        cur.execute("SELECT app_id FROM superset_schema.app_details WHERE rating_update_at < current_date;")
+        cur.execute("SELECT app_id FROM superset_schema.app_details WHERE platform = 1 AND rating_update_at < current_date;")
         for app_id in cur:
 
             # google playからページ取得
