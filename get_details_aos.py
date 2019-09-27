@@ -122,7 +122,7 @@ with get_connection() as conn:
                 print("histogram5        : {}".format(HISTOGRAM[5]))
 
             # slackに通知
-            text="{icon_url}\n<https://play.google.com/store/apps/details?id={app_id} | {app_name}> のアプリが追加されました"\
+            text="{icon_url}\n<https://play.google.com/store/apps/details?id={app_id} | {app_name}> の Android アプリが追加されました"\
                     .format(icon_url=json_response['image'], app_id=app_id[0], app_name=json_response['name'])
 
             requests.post("https://hooks.slack.com/services/" + SLACK_URL, data = json.dumps({

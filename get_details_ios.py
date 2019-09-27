@@ -87,7 +87,7 @@ with get_connection() as conn:
                 print("histogram5        : {}".format(0))
 
             # slackに通知
-            text="{icon_url}\n<{track_view_url}&l=0 | {app_name}> のiPhoneアプリが追加されました"\
+            text="{icon_url}\n<{track_view_url}&l=0 | {app_name}> の iPhone アプリが追加されました"\
                     .format(icon_url=app_dict['results'][0]['artworkUrl512'], track_view_url=app_dict['results'][0]['trackViewUrl'], app_name=app_dict['results'][0]['trackCensoredName'])
 
             requests.post("https://hooks.slack.com/services/" + SLACK_URL, data = json.dumps({
