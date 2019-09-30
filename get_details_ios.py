@@ -25,7 +25,6 @@ with get_connection() as conn:
     with conn.cursor() as cur:
         cur.execute("SELECT app_id FROM superset_schema.app_ids WHERE platform = 2  EXCEPT SELECT app_id FROM superset_schema.app_details WHERE platform = 2;")
         for app_id in cur:
-            print(app_id)
 
             # iTunesからページ取得
             target_url = "https://itunes.apple.com/lookup?id={app_id}&country=JP".format(app_id=app_id[0])
@@ -52,6 +51,12 @@ with get_connection() as conn:
                 RATING = 0
                 RATING_COUNT = 0
 
+            # プライスチェック
+            if app_dict['results'][0].get('price') is not None:
+                PRICE = app_dict['results'][0]['price']
+            else:
+                PRICE = 0
+
             # スクリーンショットjson化
             SCREENSHOTS=[]
             if app_dict['results'][0]['screenshotUrls'] is not None:
@@ -61,7 +66,7 @@ with get_connection() as conn:
             if DEBUG:
                 print("----------------------")
                 print("app_id            : {}".format(app_dict['results'][0]['trackId']))
-                print("app_name          : {}".format(app_dict['results'][0]['trackCensoredName']))
+                print("app_name          : {}".format(app_dict['results'][0]['trackName']))
                 print("platform          : 2")
                 print("icon_url          : {}".format(app_dict['results'][0]['artworkUrl512']))
                 print("ranking           : -")
@@ -71,7 +76,7 @@ with get_connection() as conn:
                 print("rating_update_at  : -now-")
                 print("genere            : {}".format(app_dict['results'][0]['primaryGenreName']))
                 print("installs          : {}".format(RATING_COUNT))
-                print("price             : {}".format(app_dict['results'][0]['price']))
+                print("price             : {}".format(PRICE))
                 print("publisher_id      : {}".format(app_dict['results'][0]['artistId']))
                 print("publisher_name    : {}".format(app_dict['results'][0]['artistName']))
                 print("release_at        : {}".format(app_dict['results'][0]['releaseDate']))
@@ -133,13 +138,13 @@ with get_connection() as conn:
                             select app_id from superset_schema.app_details where app_id = %s); ",
                             (\
                                     app_dict['results'][0]['trackId'], \
-                                    app_dict['results'][0]['trackCensoredName'], \
+                                    app_dict['results'][0]['trackName'], \
                                     app_dict['results'][0]['artworkUrl512'], \
                                     RATING, \
                                     RATING_COUNT, \
                                     app_dict['results'][0]['primaryGenreName'], \
                                     RATING_COUNT, \
-                                    app_dict['results'][0]['price'], \
+                                    PRICE, \
                                     app_dict['results'][0]['artistId'], \
                                     app_dict['results'][0]['artistName'], \
                                     app_dict['results'][0]['description'], \
