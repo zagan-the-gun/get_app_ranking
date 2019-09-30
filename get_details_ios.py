@@ -43,12 +43,14 @@ with get_connection() as conn:
 
             # レーティングチェック
             # 誰にも評価されてないと空っぽ?
-            print(app_dict)
             if app_dict['results'][0].get('averageUserRatingForCurrentVersion') is not None:
                 RATING = app_dict['results'][0]['averageUserRatingForCurrentVersion']
-                RATING_COUNT = app_dict['results'][0]['userRatingCountForCurrentVersion']
             else:
                 RATING = 0
+
+            if app_dict['results'][0].get('userRatingCountForCurrentVersion') is not None:
+                RATING_COUNT = app_dict['results'][0]['userRatingCountForCurrentVersion']
+            else:
                 RATING_COUNT = 0
 
             # プライスチェック
