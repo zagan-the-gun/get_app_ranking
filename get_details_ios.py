@@ -41,6 +41,10 @@ with get_connection() as conn:
                     response = requests.get(target_url) #requestsを使って、webから取得
                     app_dict = json.loads(response.text)
 
+            # 取得出来なかったら削除でもいい？
+            if app_dict['resultCount'] == 0:
+                continue
+
             # レーティングチェック
             # 誰にも評価されてないと空っぽ?
             if app_dict['results'][0].get('averageUserRatingForCurrentVersion') is not None:
