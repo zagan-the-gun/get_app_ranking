@@ -38,7 +38,7 @@ APP_ADDS=[
 # app-ads.txt取得
 for target_url in APP_ADDS:
     response = requests.get(target_url, timeout=(10.0, 10.0))
-    if response.status_code == requests.codes.ok:
+    if response.status_code != requests.codes.ok:
         # slackに通知
         text="URLアクセスエラー {target_url}\nステータスコード: {status_code}"\
                 .format(target_url=target_url, status_code=response.status_code)
