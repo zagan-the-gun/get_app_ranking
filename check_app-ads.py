@@ -13,13 +13,9 @@ import pytz
 import sys
 
 args = sys.argv
-jst = pytz.timezone('Asia/Tokyo')
 
 DEBUG=True
 SLACK_URL=args[1]
-
-def get_connection():
-    return psycopg2.connect(DATABASE_URL)
 
 # 配列
 APP_ADDS=[
