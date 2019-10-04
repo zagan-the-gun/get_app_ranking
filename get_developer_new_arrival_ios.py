@@ -32,7 +32,14 @@ with get_connection() as conn:
             # リトライ
             if response.status_code != requests.codes.ok:
                 response = requests.get(target_url, timeout=(10.0, 10.0)) #requestsを使って、webから取得
-            app_dict = json.loads(response.text)
+            try:
+                app_dict = json.loads(response.text)
+            except Exception as e:
+                print(e)
+                print(target_url)
+                print(response)
+                print(response.status_code)
+                app_dict={'resultCount':0}
 
             # 個数チェック
             if app_dict['resultCount'] == 0:
@@ -42,7 +49,14 @@ with get_connection() as conn:
                 if response.status_code != requests.codes.ok:
                     response = requests.get(target_url, timeout=(10.0, 10.0)) #requestsを使って、webから取得
 
+            try:
                 app_dict = json.loads(response.text)
+            except Exception as e:
+                print(e)
+                print(target_url)
+                print(response)
+                print(response.status_code)
+                app_dict={'resultCount':0}
 
             # 個数チェック
             if app_dict['resultCount'] == 0:
@@ -51,7 +65,15 @@ with get_connection() as conn:
                 # リトライ
                 if response.status_code != requests.codes.ok:
                     response = requests.get(target_url, timeout=(10.0, 10.0)) #requestsを使って、webから取得
+
+            try:
                 app_dict = json.loads(response.text)
+            except Exception as e:
+                print(e)
+                print(target_url)
+                print(response)
+                print(response.status_code)
+                continue
  
             for app in app_dict['results']:
                 if app['primaryGenreId'] == 6014:
