@@ -72,8 +72,8 @@ with get_connection() as conn:
                             SCREENSHOTS=SCREENSHOTS + "<" + s + "|" + str(i) + "> "
 
                     PUBLISHER_NAME=app[0]['publisher_name'].replace(" ", "-").replace(".","").replace(",","").replace(":","").replace(";",'').lower()
-                    text="{icon_url}\n<{track_view_url}&l=0 | {app_name}> の iPhone アプリが非公開になりました\nジャンル: {genre}\nコンテンツレーティング: {content_rating}\nデベロッパー: <https://apps.apple.com/us/developer/{publisher_name_2}/id{publisher_id} | {publisher_name}>\nインストール数: {installs}\nスクリーンショット: {screenshots}\n"\
-                            .format(icon_url=app[0]['icon_url'], track_view_url=app_dict['results'][0]['trackViewUrl'], app_id=app[0]['app_id'], app_name=app[0]['app_name'], revival_date=REVIVAL_DATE, genre=app[0]['genre'], content_rating=app[0]['content_rating'], publisher_id=app[0]['publisher_id'], publisher_name=app[0]['publisher_name'], publisher_name_2=PUBLISHER_NAME, rating=app[0]['rating'], rating_count=app[0]['rating_count'], reviews=app[0]['reviews'], description=app[0]['description'], screenshots=SCREENSHOTS, video=app[0]['video'], installs=app[0]['installs'])
+                    text="{icon_url}\n{app_name} の iPhone アプリが非公開になりました\nジャンル: {genre}\nコンテンツレーティング: {content_rating}\nデベロッパー: <https://apps.apple.com/us/developer/{publisher_name_2}/id{publisher_id} | {publisher_name}>\nインストール数: {installs}\nスクリーンショット: {screenshots}\n"\
+                            .format(icon_url=app[0]['icon_url'], app_id=app[0]['app_id'], app_name=app[0]['app_name'], genre=app[0]['genre'], content_rating=app[0]['content_rating'], publisher_id=app[0]['publisher_id'], publisher_name=app[0]['publisher_name'], publisher_name_2=PUBLISHER_NAME, rating=app[0]['rating'], rating_count=app[0]['rating_count'], reviews=app[0]['reviews'], description=app[0]['description'], screenshots=SCREENSHOTS, video=app[0]['video'], installs=app[0]['installs'])
 
 
                     # Slackに死亡を報告
