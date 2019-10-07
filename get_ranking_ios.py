@@ -18,7 +18,7 @@ args = sys.argv
 
 DATABASE_URL='postgresql://'+ args[1] + ':' + args[2] + '@'+ args[3] + ':5439/'+ args[4]
 LOG='/tmp/superset.log'
-DEBUG=True
+DEBUG=False
 
 def get_connection():
     return psycopg2.connect(DATABASE_URL)
@@ -31,10 +31,8 @@ with get_connection() as conn:
 
             # iTunesからページ取得
             target_url = "https://itunes.apple.com/lookup?id={app_id}&country=JP".format(app_id=app_id[0])
-            print(target_url)
             response = requests.get(target_url) #requestsを使って、webから取得
             app_dict = json.loads(response.text)
-            print(app_dict)
 
             if app_dict['resultCount'] == 0:
                 target_url = "https://itunes.apple.com/lookup?id={app_id}".format(app_id=app_id[0])
@@ -46,9 +44,11 @@ with get_connection() as conn:
                     response = requests.get(target_url) #requestsを使って、webから取得
                     app_dict = json.loads(response.text)
 
+                    if app_dict['resultCount'] == 0:
+                        continue
+
             # レーティングチェック
             # 誰にも評価されてないと空っぽ
-            print(app_dict)
             if app_dict['results'][0].get('averageUserRatingForCurrentVersion') is not None:
                 RATING = app_dict['results'][0]['averageUserRatingForCurrentVersion']
                 RATING_COUNT = app_dict['results'][0]['userRatingCountForCurrentVersion']
@@ -61,6 +61,12 @@ with get_connection() as conn:
             if app_dict['results'][0]['screenshotUrls'] is not None:
                 for s in app_dict['results'][0]['screenshotUrls']:
                     SCREENSHOTS.append(s)
+
+            # プライス取得
+            if 'price' in app_dict['results'][0]:
+                PRICE=app_dict['results'][0]['price']
+            else:
+                PRICE=0
 
             if DEBUG:
                 print("----------------------")
@@ -75,14 +81,14 @@ with get_connection() as conn:
                 print("rating_update_at  : -now-")
                 print("genere            : {}".format(app_dict['results'][0]['primaryGenreName']))
                 print("installs          : {}".format(RATING_COUNT))
-                print("price             : {}".format(app_dict['results'][0]['price']))
+                print("price             : {}".format(PRICE))
                 print("publisher_id      : {}".format(app_dict['results'][0]['artistId']))
                 print("publisher_name    : {}".format(app_dict['results'][0]['artistName']))
                 print("release_at        : {}".format(app_dict['results'][0]['releaseDate']))
                 print("description       : {}".format(app_dict['results'][0]['description']))
                 print("screenshots       : {}".format(str(SCREENSHOTS).replace("\'", "\"")))
                 print("video             : -")
-                print("content_rating    : {}".format(app_dict['results'][0]['trackContentRating']))
+                print("content_rating    : {}".format(PRICE))
                 print("reviews           : {}".format(0))
                 print("histogram1        : {}".format(0))
                 print("histogram2        : {}".format(0))
@@ -126,7 +132,7 @@ with get_connection() as conn:
                                     RATING_COUNT, \
                                     app_dict['results'][0]['primaryGenreName'], \
                                     RATING_COUNT, \
-                                    app_dict['results'][0]['price'], \
+                                    PRICE, \
                                     app_dict['results'][0]['artistId'], \
                                     app_dict['results'][0]['artistName'], \
                                     app_dict['results'][0]['releaseDate'],\
@@ -172,7 +178,7 @@ with get_connection() as conn:
                                     RATING_COUNT, \
                                     app_dict['results'][0]['primaryGenreName'], \
                                     RATING_COUNT, \
-                                    app_dict['results'][0]['price'], \
+                                    PRICE, \
                                     app_dict['results'][0]['artistId'], \
                                     app_dict['results'][0]['artistName'], \
                                     '0', \

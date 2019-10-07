@@ -14,11 +14,16 @@ args = sys.argv
 
 DATABASE_URL='postgresql://'+ args[1] + ':' + args[2] + '@'+ args[3] + ':5439/'+ args[4]
 LOG='/tmp/superset.log'
-DEBUG=True
+DEBUG=False
 SLACK_URL=args[5]
 
 def get_connection():
     return psycopg2.connect(DATABASE_URL)
+
+def truncate(str, num_bytes, encoding='utf-8'):
+    while len(str.encode(encoding)) > num_bytes:
+        str = str[:-1]
+    return str
 
 # redshiftからapp_idリストを取得 joinで不足分だけに変更する
 with get_connection() as conn:
@@ -69,6 +74,9 @@ with get_connection() as conn:
                 for s in app_dict['results'][0]['screenshotUrls']:
                     SCREENSHOTS.append(s)
 
+            # 開発会社名長いのは切っちゃう
+            ARTIST_NAME=truncate(app_dict['results'][0]['artistName'], 254)
+
             if DEBUG:
                 print("----------------------")
                 print("app_id            : {}".format(app_dict['results'][0]['trackId']))
@@ -84,7 +92,7 @@ with get_connection() as conn:
                 print("installs          : {}".format(RATING_COUNT))
                 print("price             : {}".format(PRICE))
                 print("publisher_id      : {}".format(app_dict['results'][0]['artistId']))
-                print("publisher_name    : {}".format(app_dict['results'][0]['artistName']))
+                print("publisher_name    : {}".format(ARTIST_NAME))
                 print("release_at        : {}".format(app_dict['results'][0]['releaseDate']))
                 print("description       : {}".format(app_dict['results'][0]['description']))
                 print("screenshots       : {}".format(str(SCREENSHOTS).replace("\'", "\"")))
@@ -152,7 +160,7 @@ with get_connection() as conn:
                                     RATING_COUNT, \
                                     PRICE, \
                                     app_dict['results'][0]['artistId'], \
-                                    app_dict['results'][0]['artistName'], \
+                                    ARTIST_NAME, \
                                     app_dict['results'][0]['description'], \
                                     str(SCREENSHOTS).replace("\'", "\""), \
                                     "", \
