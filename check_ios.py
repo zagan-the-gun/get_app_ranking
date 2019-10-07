@@ -130,3 +130,6 @@ with get_connection() as conn:
                     if DEBUG:
                         print("app is alive. {}".format(app_id[0]))
 
+with open(LOG, mode='a') as f:
+    f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_ios\n")
+
