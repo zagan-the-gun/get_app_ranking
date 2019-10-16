@@ -29,6 +29,10 @@ APP_ADDS=[
         'https://spiritduck.be/app-ads.txt',
         'https://aslmoco.be/app-ads.txt',
         'https://colaup.be/app-ads.txt'
+        'https://naotaoka1214.com/app-ads.txt',
+        'https://30kthirai11.com/app-ads.txt',
+        'https://423rinkatayama.com/app-ads.txt',
+        'https://takuya1iwamoto1.com/app-ads.txt',
         ]
 
 # app-ads.txt取得
