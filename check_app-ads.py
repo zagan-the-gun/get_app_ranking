@@ -28,7 +28,7 @@ APP_ADDS=[
         'https://imikowaapps.be/app-ads.txt',
         'https://spiritduck.be/app-ads.txt',
         'https://aslmoco.be/app-ads.txt',
-        'https://colaup.be/app-ads.txt'
+        'https://colaup.be/app-ads.txt',
         'https://naotaoka1214.com/app-ads.txt',
         'https://30kthirai11.com/app-ads.txt',
         'https://423rinkatayama.com/app-ads.txt',
