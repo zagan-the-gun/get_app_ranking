@@ -132,6 +132,8 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
             sleep(1)
             worksheet.update_cell(target.row, 29, 0)
 
+    sleep(5)
+
     # 接続確認
     try:
         worksheet.update_cell(target.row, 3, event['app_name'])
