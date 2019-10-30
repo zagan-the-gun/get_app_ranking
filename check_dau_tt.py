@@ -22,7 +22,8 @@ args = sys.argv
 
 DATABASE_URL='postgresql://'+ args[1] + ':' + args[2] + '@'+ args[3] + ':5439/'+ args[4]
 SLACK_URL=args[5]
-DATE=int(args[6])
+KEYFILE_PATH=args[6]
+DATE=int(args[7])
 LOG='/tmp/superset.log'
 DEBUG=True
 CHECK_DATE=(datetime.date.today())-datetime.timedelta(days=DATE)
@@ -42,7 +43,7 @@ def get_dict_resultset(sql):
 
 # OAuth処理
 scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
-credentials = ServiceAccountCredentials.from_json_keyfile_name('gcp.json', scope)
+credentials = ServiceAccountCredentials.from_json_keyfile_name(KEYFILE_PATH, scope)
 gc = gspread.authorize(credentials)
 
 http = httplib2.Http()
