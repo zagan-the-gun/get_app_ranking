@@ -2,13 +2,10 @@
 # -*- coding: utf8 -*-
 
 import requests
-import json
-from bs4 import BeautifulSoup
 import os
 import psycopg2
 import psycopg2.extras
 import datetime
-import pytz
 import sys
 
 import gspread
@@ -16,28 +13,25 @@ import json
 
 from oauth2client.service_account import ServiceAccountCredentials
 
-#from apiclient.discovery import build
 from googleapiclient.discovery import build
 import httplib2
 
 from time import sleep
 
 args = sys.argv
-jst = pytz.timezone('Asia/Tokyo')
 
 DATABASE_URL='postgresql://'+ args[1] + ':' + args[2] + '@'+ args[3] + ':5439/'+ args[4]
 SLACK_URL=args[5]
-DATE=int(args[6])
+KEYFILE_PATH=args[6]
+DATE=int(args[7])
 LOG='/tmp/superset.log'
 DEBUG=True
 CHECK_DATE=(datetime.date.today())-datetime.timedelta(days=DATE)
-print(CHECK_DATE)
 
 with open(LOG, mode='a') as f:
     f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_spend_tt start\n")
 
 def get_dict_resultset(sql):
-    print(sql)
     with psycopg2.connect(DATABASE_URL) as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
             cur.execute (sql)
@@ -49,13 +43,13 @@ def get_dict_resultset(sql):
 
 # OAuth処理
 scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
-credentials = ServiceAccountCredentials.from_json_keyfile_name('gcp.json', scope)
+credentials = ServiceAccountCredentials.from_json_keyfile_name(KEYFILE_PATH, scope)
+gc = gspread.authorize(credentials)
 
 http = httplib2.Http()
 http = credentials.authorize(http)
 service = build('drive', 'v3', http=http)
 
-gc = gspread.authorize(credentials)
 FILE_ID='1ucsOJTuUp6IFhz99MUVNtFZVeM1RjzkewOdok2X4VQg'
 
 PREV_APP_ID=""
@@ -69,8 +63,11 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id']), key=lambda x:x
     elif PREV_APP_ID == spend['app_id']:
         i = 1
     else:
+        sleep(1)
+        worksheet.update_cells(target_cells, value_input_option='USER_ENTERED')
         PREV_APP_ID = spend['app_id']
         i = 0
+
     PREV_APP_ID = spend['app_id']
 
     # 初期処理
@@ -80,10 +77,17 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id']), key=lambda x:x
             SPREADSHEET_NAME="BOT_" + spend['app_name'] + "／シミュレーション"
         else:
             SPREADSHEET_NAME="BOT_" + spend['app_name'] + "_Android／シミュレーション"
-    
+
+        if DEBUG:
+            print(str(CHECK_DATE) + ": check_spend_tt : " + SPREADSHEET_NAME)
+
         # Googleスプレッドシート無ければ作成
         try:
+            # gc行は要らないかも
+            gc = gspread.authorize(credentials)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
+            print("ファイルオープン成功")
+            sleep(1)
         except:
             new_file_body = {
                 'name': SPREADSHEET_NAME,  # 新しいファイルのファイル名. 省略も可能
@@ -93,119 +97,152 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id']), key=lambda x:x
                 'emailAddress': 'ishizuka@tokyo-tsushin.com',
             }
         
+            print("ファイル作成")
+            print(FILE_ID)
             new_file = service.files().copy(
                 fileId=FILE_ID, body=new_file_body
             ).execute()
-        
+
+            gc = gspread.authorize(credentials)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
     
         # 当日行取得、無ければ作る
         try:
             target = worksheet.find(str(CHECK_DATE))
-    
-        except:
-            # 売上集計シートに行追加
-            worksheet = gc.open(SPREADSHEET_NAME).worksheet("売上集計")
-            # リファレンス行をコピー
-            reference_list = worksheet.row_values(11, value_render_option='FORMULA')
-            # 最終行にペースト
-            print(str(reference_list))
-            del reference_list[0]
-            worksheet.append_row(reference_list, value_input_option='USER_ENTERED')
+            sleep(2)
+            target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
 
-            # 集計シート開き直し
-            worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
+        # 無いので行を追加
+        except gspread.exceptions.CellNotFound as e:
+            if DEBUG:
+                print(type(e))
+                print("新規追加")
+                print(e)
+
+            # 売上集計シートに行追加
+            sales_summary = gc.open(SPREADSHEET_NAME).worksheet("売上集計")
+            # リファレンス行をコピー
+            reference_list = sales_summary.row_values(11, value_render_option='FORMULA')
+            # 最終行にペースト
+            del reference_list[0]
+            sales_summary.append_row(reference_list, value_input_option='USER_ENTERED')
+
+            # 書き込みデータ作成
+            target_list=['']*3
+            target_list[1]=str(CHECK_DATE)
+            target_list[2]=spend['app_name']
+
+            # 最終行に追加
+            worksheet.append_row(target_list, value_input_option='USER_ENTERED')
 
             # 最終行に日付追加
-            worksheet.append_row(['', "{}".format(CHECK_DATE)], value_input_option='USER_ENTERED')
             target = worksheet.find(str(CHECK_DATE))
 
-    sleep(6)
+            target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
 
-    # 接続確認
-    try:
-        worksheet.update_cell(target.row, 3, spend['app_name'])
-    except Exception as e:
-        print("APIError が発生しました")
-        # OAuth処理
-        scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
-        credentials = ServiceAccountCredentials.from_json_keyfile_name('gcp.json', scope)
-        gc = gspread.authorize(credentials)
+        except gspread.exceptions.APIError as e:
+            print(type(e))
+            print("API制限 スキップ")
+            continue
 
-        http = httplib2.Http(timeout=7200)
-        http = credentials.authorize(http)
-        service = build('drive', 'v3', http=http)
-        worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
-        worksheet.update_cell(target.row, 3, spend['app_name'])
-        print(type(e))
-        print(e)
+        except Exception as e:
+            print(type(e))
 
     # spendをドルに戻す
     SPEND=spend['spend']/100
     if DEBUG:
-        print(spend['app_name'] + " : " + spend['platform'] + " : " + str(spend['store_id']) + " : " + str(spend['bundle_id']) + " : " + spend['ad_name'] + " : 広告支出 $" + str(SPEND))
+        print(spend['app_name'] + " : " + spend['platform'] + " : " + str(spend['store_id']) + " : " + str(spend['bundle_id']) + " : " + spend['ad_name'] + " : インストール " + str(spend['installs']) + " : 広告支出 $" + str(SPEND))
 
     # アプリ名
     worksheet.update_cell(target.row, 3, spend['app_name'])
     # Applovin出稿
     if spend['ad_name'] == 'Applovin':
-        worksheet.update_cell(target.row, 18, spend['installs'])
-        worksheet.update_cell(target.row, 19, SPEND)
+#        worksheet.update_cell(target.row, 18, spend['installs'])
+#        worksheet.update_cell(target.row, 19, SPEND)
+        target_cells[17].value=spend['installs']
+        target_cells[18].value=SPEND
 
     # Tapjoy出稿
-    if spend['ad_name'] == 'Tapjoy':
-        worksheet.update_cell(target.row, 20, spend['installs'])
-        worksheet.update_cell(target.row, 21, SPEND)
+    elif spend['ad_name'] == 'Tapjoy':
+#        worksheet.update_cell(target.row, 20, spend['installs'])
+#        worksheet.update_cell(target.row, 21, SPEND)
+        target_cells[19].value=spend['installs']
+        target_cells[20].value=SPEND
 
     # Unity出稿
-    if spend['ad_name'] == 'Unity':
-        worksheet.update_cell(target.row, 22, spend['installs'])
-        worksheet.update_cell(target.row, 23, SPEND)
+    elif spend['ad_name'] == 'Unity':
+#        worksheet.update_cell(target.row, 22, spend['installs'])
+#        worksheet.update_cell(target.row, 23, SPEND)
+        target_cells[21].value=spend['installs']
+        target_cells[22].value=SPEND
 
     # Facebook出稿
-    if spend['ad_name'] == 'Facebook':
-        worksheet.update_cell(target.row, 24, spend['installs'])
-        worksheet.update_cell(target.row, 25, SPEND)
+    elif spend['ad_name'] == 'Facebook':
+#        worksheet.update_cell(target.row, 24, spend['installs'])
+#        worksheet.update_cell(target.row, 25, SPEND)
+        target_cells[23].value=spend['installs']
+        target_cells[24].value=SPEND
 
     # ironSource出稿
-    if spend['ad_name'] == 'ironSource':
-        worksheet.update_cell(target.row, 26, spend['installs'])
-        worksheet.update_cell(target.row, 27, SPEND)
+    elif spend['ad_name'] == 'ironSource':
+#        worksheet.update_cell(target.row, 26, spend['installs'])
+#        worksheet.update_cell(target.row, 27, SPEND)
+        target_cells[25].value=spend['installs']
+        target_cells[26].value=SPEND
 
     # Google Ads出稿
-    if spend['ad_name'] == 'Google Ads':
-        worksheet.update_cell(target.row, 31, spend['installs'])
-        worksheet.update_cell(target.row, 32, SPEND)
+    elif spend['ad_name'] == 'Google Ads':
+#        worksheet.update_cell(target.row, 31, spend['installs'])
+#        worksheet.update_cell(target.row, 32, SPEND)
+        target_cells[30].value=spend['installs']
+        target_cells[31].value=SPEND
 
     # TikTok出稿
-    if spend['ad_name'] == 'TikTok':
-        worksheet.update_cell(target.row, 33, spend['installs'])
-        worksheet.update_cell(target.row, 34, SPEND)
+    elif spend['ad_name'] == 'TikTok':
+#        worksheet.update_cell(target.row, 33, spend['installs'])
+#        worksheet.update_cell(target.row, 34, SPEND)
+        target_cells[32].value=spend['installs']
+        target_cells[33].value=SPEND
 
     # Snapchat出稿
-    if spend['ad_name'] == 'Snapchat':
-        worksheet.update_cell(target.row, 37, spend['installs'])
-        worksheet.update_cell(target.row, 38, SPEND)
+    elif spend['ad_name'] == 'Snapchat':
+#        worksheet.update_cell(target.row, 37, spend['installs'])
+#        worksheet.update_cell(target.row, 38, SPEND)
+        target_cells[36].value=spend['installs']
+        target_cells[37].value=SPEND
 
     # Mintegral出稿
-    if spend['ad_name'] == 'Mintegral':
-        worksheet.update_cell(target.row, 39, spend['installs'])
-        worksheet.update_cell(target.row, 40, SPEND)
+    elif spend['ad_name'] == 'Mintegral':
+#        worksheet.update_cell(target.row, 39, spend['installs'])
+#        worksheet.update_cell(target.row, 40, SPEND)
+        target_cells[38].value=spend['installs']
+        target_cells[39].value=SPEND
 
     # Apple Search Ads出稿
-    if spend['ad_name'] == 'Apple Search Ads':
-        worksheet.update_cell(target.row, 41, spend['installs'])
-        worksheet.update_cell(target.row, 42, SPEND)
+    elif spend['ad_name'] == 'Apple Search Ads':
+#        worksheet.update_cell(target.row, 41, spend['installs'])
+#        worksheet.update_cell(target.row, 42, SPEND)
+        target_cells[40].value=spend['installs']
+        target_cells[41].value=SPEND
 
     # Maio出稿
-    if spend['ad_name'] == 'Maio':
-        worksheet.update_cell(target.row, 43, spend['installs'])
-        worksheet.update_cell(target.row, 44, SPEND)
+    elif spend['ad_name'] == 'Maio':
+#        worksheet.update_cell(target.row, 43, spend['installs'])
+#        worksheet.update_cell(target.row, 44, SPEND)
+        target_cells[42].value=spend['installs']
+        target_cells[43].value=SPEND
 
     # i-mobile Affiliate出稿
-    if spend['ad_name'] == 'i-mobile Affiliate':
-        worksheet.update_cell(target.row, 45, spend['installs'])
-        worksheet.update_cell(target.row, 46, SPEND)
+    elif spend['ad_name'] == 'i-mobile Affiliate':
+#        worksheet.update_cell(target.row, 45, spend['installs'])
+#        worksheet.update_cell(target.row, 46, SPEND)
+        target_cells[44].value=spend['installs']
+        target_cells[45].value=SPEND
+
+    else:
+        print("DEBUG DEBUG DEBUG!")
+        print(str(spend['ad_name']) + " : " + str(SPEND))
+
 
 with open(LOG, mode='a') as f:
     f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_spend_tt end\n")
