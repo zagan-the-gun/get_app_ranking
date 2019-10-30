@@ -8,8 +8,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.discovery import build
 import httplib2
 
-args = sys.argv
-
 LOG='/tmp/superset.log'
 
 # Googleスプレッドシート削除
