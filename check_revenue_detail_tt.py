@@ -86,9 +86,9 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
         # Googleスプレッドシート無ければ作成
         try:
             gc = gspread.authorize(credentials)
+            sleep(1)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
             print("ファイルオープン成功")
-#            sleep(1)
         except:
             new_file_body = {
                 'name': SPREADSHEET_NAME,  # 新しいファイルのファイル名. 省略も可能
@@ -104,13 +104,14 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
                 fileId=FILE_ID, body=new_file_body
             ).execute()
             gc = gspread.authorize(credentials)
+            sleep(1)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
 
         # 当日行取得、無ければ作る
         try:
+            sleep(1)
             target = worksheet.find(str(CHECK_DATE))
             sleep(1)
-
             target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
 
         # 無いので行を追加
@@ -120,13 +121,15 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
                 print("新規追加")
                 print(e)
 
-            sleep(2)
             # 売上集計シートに行追加
+            sleep(1)
             sales_summary = gc.open(SPREADSHEET_NAME).worksheet("売上集計")
             # リファレンス行をコピー
+            sleep(1)
             reference_list = sales_summary.row_values(11, value_render_option='FORMULA')
             # 最終行にペースト
             del reference_list[0]
+            sleep(1)
             sales_summary.append_row(reference_list, value_input_option='USER_ENTERED')
 
             # 書き込みデータ作成
@@ -142,7 +145,9 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
             worksheet.append_row(target_list, value_input_option='USER_ENTERED')
 
             # 取得
+            sleep(1)
             target = worksheet.find(str(CHECK_DATE))
+            sleep(1)
             target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
 
         except gspread.exceptions.APIError as e:
@@ -158,44 +163,6 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
         target_cells[4].value=0
         target_cells[6].value=0
         target_cells[7].value=0
-#        try:
-#            sleep(1)
-#            worksheet.update_cell(target.row, 4, 0)
-#            sleep(1)
-#            worksheet.update_cell(target.row, 5, 0)
-#            sleep(1)
-#            worksheet.update_cell(target.row, 7, 0)
-#            sleep(1)
-#            worksheet.update_cell(target.row, 8, 0)
-#        except:
-#            sleep(5)
-#            worksheet.update_cell(target.row, 8, 0)
-#            sleep(2)
-#            worksheet.update_cell(target.row, 7, 0)
-#            sleep(2)
-#            worksheet.update_cell(target.row, 5, 0)
-#            sleep(2)
-#            worksheet.update_cell(target.row, 4, 0)
-
-#    sleep(5)
-
-    # 接続確認
-#    try:
-#        worksheet.update_cell(target.row, 3, pa_revenue['app_name'])
-#    except Exception as e:
-#        print("APIError が発生しました")
-#        # OAuth処理
-#        scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
-#        credentials = ServiceAccountCredentials.from_json_keyfile_name('gcp.json', scope)
-#        gc = gspread.authorize(credentials)
-#        
-#        http = httplib2.Http(timeout=7200)
-#        http = credentials.authorize(http)
-#        service = build('drive', 'v3', http=http)
-#        worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
-#        worksheet.update_cell(target.row, 3, pa_revenue['app_name'])
-#        print(type(e))
-#        print(e)
 
     # revenueをドルに戻す
     REVENUE=pa_revenue['revenue']/100
@@ -207,11 +174,9 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
         COL_BANNER=3
         COL_INTERSTITIAL=4
         if 'バナー' in pa_revenue['pa_name'] or 'Banner' in pa_revenue['pa_name'] or 'banner' in pa_revenue['pa_name'] or 'レクタングル' in pa_revenue['pa_name'] or 'Rectangle' in pa_revenue['pa_name'] or 'rectangle' in pa_revenue['pa_name']:
-#            worksheet.update_cell(target.row, COL_BANNER, float(worksheet.cell(target.row, COL_BANNER).value) + float(REVENUE))
             target_cells[COL_BANNER].value=float(target_cells[COL_BANNER].value or 0) + float(REVENUE)
 
         else:
-#            worksheet.update_cell(target.row, COL_INTERSTITIAL, float(worksheet.cell(target.row, COL_INTERSTITIAL).value) + float(REVENUE))
             target_cells[COL_INTERSTITIAL].value=float(target_cells[COL_INTERSTITIAL].value or 0) + float(REVENUE)
 
     # Applovin出稿
@@ -220,13 +185,10 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
             print(pa_revenue['app_name'] + " : " + pa_revenue['platform'] + " : " + str(pa_revenue['bundle_id']) + " : " + pa_revenue['ad_name'] + " : 広告収入 $" + str(REVENUE))
         COL_BANNER=6
         COL_INTERSTITIAL=7
-#        if 'バナー' in pa_revenue['pa_name']:
         if 'バナー' in pa_revenue['pa_name'] or 'Banner' in pa_revenue['pa_name'] or 'banner' in pa_revenue['pa_name'] or 'レクタングル' in pa_revenue['pa_name'] or 'Rectangle' in pa_revenue['pa_name'] or 'rectangle' in pa_revenue['pa_name']:
-#            worksheet.update_cell(target.row, COL_BANNER, float(worksheet.cell(target.row, COL_BANNER).value) + float(REVENUE))
             target_cells[COL_BANNER].value=float(target_cells[COL_BANNER].value or 0) + float(REVENUE)
 
         else:
-#            worksheet.update_cell(target.row, COL_INTERSTITIAL, float(worksheet.cell(target.row, COL_INTERSTITIAL).value) + float(REVENUE))
             target_cells[COL_INTERSTITIAL].value=float(target_cells[COL_INTERSTITIAL].value or 0) + float(REVENUE)
 
 with open(LOG, mode='a') as f:
