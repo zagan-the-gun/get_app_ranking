@@ -106,11 +106,14 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
             print(e)
 
         # 売上集計シートに行追加
+        sleep(1)
         sales_summary = gc.open(SPREADSHEET_NAME).worksheet("売上集計")
         # リファレンス行をコピー
+        sleep(1)
         reference_list = sales_summary.row_values(11, value_render_option='FORMULA')
         # 最終行にペースト
         del reference_list[0]
+        sleep(1)
         sales_summary.append_row(reference_list, value_input_option='USER_ENTERED')
 
         # 書き込みデータ作成
@@ -119,11 +122,13 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
         target_list[2]=event['app_name']
 
         # 最終行に追加
+        sleep(1)
         worksheet.append_row(target_list, value_input_option='USER_ENTERED')
 
         # 最終行に日付追加
+        sleep(1)
         target = worksheet.find(str(CHECK_DATE))
-
+        sleep(1)
         target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
 
     except gspread.exceptions.APIError as e:
