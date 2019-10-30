@@ -2,13 +2,10 @@
 # -*- coding: utf8 -*-
 
 import requests
-import json
-from bs4 import BeautifulSoup
 import os
 import psycopg2
 import psycopg2.extras
 import datetime
-import pytz
 import sys
 
 import gspread
@@ -22,20 +19,16 @@ import httplib2
 from time import sleep
 
 args = sys.argv
-jst = pytz.timezone('Asia/Tokyo')
 
 DATABASE_URL='postgresql://'+ args[1] + ':' + args[2] + '@'+ args[3] + ':5439/'+ args[4]
 SLACK_URL=args[5]
 DATE=int(args[6])
 LOG='/tmp/superset.log'
-DEBUG=False
+DEBUG=True
 CHECK_DATE=(datetime.date.today())-datetime.timedelta(days=DATE)
 
 with open(LOG, mode='a') as f:
     f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt start\n")
-
-if DEBUG:
-    print(CHECK_DATE)
 
 def get_dict_resultset(sql):
     with psycopg2.connect(DATABASE_URL) as conn:
@@ -50,12 +43,12 @@ def get_dict_resultset(sql):
 # OAuth処理
 scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
 credentials = ServiceAccountCredentials.from_json_keyfile_name('gcp.json', scope)
+gc = gspread.authorize(credentials)
 
 http = httplib2.Http()
 http = credentials.authorize(http)
 service = build('drive', 'v3', http=http)
 
-gc = gspread.authorize(credentials)
 FILE_ID='1ucsOJTuUp6IFhz99MUVNtFZVeM1RjzkewOdok2X4VQg'
 
 DAU_COL=28
@@ -74,9 +67,13 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
     else:
         SPREADSHEET_NAME="BOT_" + event['app_name'] + "_Android／シミュレーション"
 
+    if DEBUG:
+        print(str(CHECK_DATE) + ": check_spend_tt : " + SPREADSHEET_NAME)
+
     # Googleスプレッドシート無ければ作成
     try:
         worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
+        print("ファイルオープン成功")
     except:
         new_file_body = {
             'name': SPREADSHEET_NAME,  # 新しいファイルのファイル名. 省略も可能
@@ -86,6 +83,8 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
             'emailAddress': 'ishizuka@tokyo-tsushin.com',
         }
 
+        print("ファイル作成")
+        print(FILE_ID)
         new_file = service.files().copy(
             fileId=FILE_ID, body=new_file_body
         ).execute()
@@ -94,20 +93,10 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
 
     # 当日行取得、無ければ作る
     try:
-#        target_list = worksheet.row_values(worksheet.find(str(CHECK_DATE)).row, value_render_option='FORMULA')
-#        target_list = worksheet.row_values(worksheet.find(str(CHECK_DATE)).row, value_render_option='UNFORMATTED_VALUE')
-        target_list = worksheet.row_values(worksheet.find(str(CHECK_DATE)).row, value_render_option='FORMATTED_VALUE')
-        # 一度行を削除
-        worksheet.delete_row(worksheet.find(str(CHECK_DATE)).row)
-
-        # 書き込みデータ作成
-#        target_list[1]=str(CHECK_DATE)
-#        target_list[2]=event['app_name']
-#        target_list[27]=event['daily_active_users']
-#        target_list[28]=event['tracked_installs']
-
-        # 最終行に追加
-#        worksheet.append_row(target_list, value_input_option='USER_ENTERED')
+        sleep(1)
+        target = worksheet.find(str(CHECK_DATE))
+        sleep(1)
+        target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
 
     # 無いので行を追加
     except gspread.exceptions.CellNotFound as e:
@@ -126,13 +115,16 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
 
         # 書き込みデータ作成
         target_list=['']*29
-#        target_list[1]=str(CHECK_DATE)
-#        target_list[2]=event['app_name']
-#        target_list[27]=event['daily_active_users']
-#        target_list[28]=event['tracked_installs']
+        target_list[1]=str(CHECK_DATE)
+        target_list[2]=event['app_name']
 
         # 最終行に追加
-#        worksheet.append_row(target_list, value_input_option='USER_ENTERED')
+        worksheet.append_row(target_list, value_input_option='USER_ENTERED')
+
+        # 最終行に日付追加
+        target = worksheet.find(str(CHECK_DATE))
+
+        target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
 
     except gspread.exceptions.APIError as e:
         print(type(e))
@@ -145,27 +137,24 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
     # データ書き込み
     try:
         # 書き込みデータ作成
-        target_list[1]=str(CHECK_DATE)
-        target_list[2]=event['app_name']
-        target_list[27]=event['daily_active_users']
-        target_list[28]=event['tracked_installs']
+        target_cells[27].value=event['daily_active_users']
+        target_cells[28].value=event['tracked_installs']
 
-        # 最終行に追加
-        worksheet.append_row(target_list, value_input_option='USER_ENTERED')
+        sleep(1)
+        worksheet.update_cells(target_cells, value_input_option='USER_ENTERED')
 
     except gspread.exceptions.APIError as e:
         print(type(e))
-        print("API制限10秒待機")
-        sleep(10)
+        print("API制限3秒待機")
+        sleep(3)
+        worksheet.update_cells(target_cells, value_input_option='USER_ENTERED')
 
     except Exception as e:
         print(type(e))
 
-
     # DAU
     if DEBUG:
         print(event['app_name'] + " : " + event['platform'] + " : " + str(event['daily_active_users'] or '0') + " : " + str(event['tracked_installs'] or '0'))
-        print("END")
 
 with open(LOG, mode='a') as f:
     f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt end\n")
