@@ -95,7 +95,7 @@ for revenue in sorted(sorted(apps_revenue, key=lambda x:x['app_id']), key=lambda
             with open(LOG, mode='a') as f:
                 f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_tt : API制限 ファイルオープン失敗 再試行 " + SPREADSHEET_NAME + "\n")
 
-            sleep(3)
+            sleep(5)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
 
         except:
