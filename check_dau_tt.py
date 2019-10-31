@@ -84,7 +84,7 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
         sleep(5)
         worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
 
-    except:
+    except Exception as e:
         with open(LOG, mode='a') as f:
             f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : ファイル作成 " + SPREADSHEET_NAME + "\n")
             f.write(str(type(e)) + "\n")
