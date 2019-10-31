@@ -20,6 +20,7 @@ from time import sleep
 
 args = sys.argv
 
+print(str(args[1]))
 DATABASE_URL='postgresql://'+ args[1] + ':' + args[2] + '@'+ args[3] + ':5439/'+ args[4]
 SLACK_URL=args[5]
 KEYFILE_PATH=args[6]
@@ -84,11 +85,23 @@ for revenue in sorted(sorted(apps_revenue, key=lambda x:x['app_id']), key=lambda
 
         # Googleスプレッドシート無ければ作成
         try:
-            gc = gspread.authorize(credentials)
+            # gcいずれ外す
+#            gc = gspread.authorize(credentials)
+            sleep(1)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
             print("ファイルオープン成功")
-#            sleep(1)
+
+        except gspread.exceptions.APIError as e:
+            with open(LOG, mode='a') as f:
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : API制限 ファイルオープン失敗 再試行 " + SPREADSHEET_NAME + "\n")
+
+            sleep(3)
+            worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
+
         except:
+            with open(LOG, mode='a') as f:
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : ファイル作成 " + SPREADSHEET_NAME + "\n")
+
             new_file_body = {
                 'name': SPREADSHEET_NAME,  # 新しいファイルのファイル名. 省略も可能
                 'parents': ['1Z6nHs-LoO8D_HdXuY2wkH5yd2Uh70daP'],  # Copy先のFolder ID. 省略も可能
@@ -108,6 +121,7 @@ for revenue in sorted(sorted(apps_revenue, key=lambda x:x['app_id']), key=lambda
 
         # 当日行取得、無ければ作る
         try:
+            sleep(1)
             target = worksheet.find(str(CHECK_DATE))
             sleep(1)
             target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
