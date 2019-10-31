@@ -84,11 +84,22 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id']), key=lambda x:x
         # Googleスプレッドシート無ければ作成
         try:
             # gc行は要らないかも
-            gc = gspread.authorize(credentials)
+#            gc = gspread.authorize(credentials)
+            sleep(1)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
             print("ファイルオープン成功")
-            sleep(1)
+
+        except gspread.exceptions.APIError as e:
+            with open(LOG, mode='a') as f:
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : API制限 ファイルオープン失敗 再試行 " + SPREADSHEET_NAME + "\n")
+
+            sleep(3)
+            worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
+
         except:
+            with open(LOG, mode='a') as f:
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : ファイル作成 " + SPREADSHEET_NAME + "\n")
+
             new_file_body = {
                 'name': SPREADSHEET_NAME,  # 新しいファイルのファイル名. 省略も可能
                 'parents': ['1Z6nHs-LoO8D_HdXuY2wkH5yd2Uh70daP'],  # Copy先のFolder ID. 省略も可能
@@ -157,92 +168,67 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id']), key=lambda x:x
     worksheet.update_cell(target.row, 3, spend['app_name'])
     # Applovin出稿
     if spend['ad_name'] == 'Applovin':
-#        worksheet.update_cell(target.row, 18, spend['installs'])
-#        worksheet.update_cell(target.row, 19, SPEND)
         target_cells[17].value=spend['installs']
         target_cells[18].value=SPEND
 
     # Tapjoy出稿
     elif spend['ad_name'] == 'Tapjoy':
-#        worksheet.update_cell(target.row, 20, spend['installs'])
-#        worksheet.update_cell(target.row, 21, SPEND)
         target_cells[19].value=spend['installs']
         target_cells[20].value=SPEND
 
     # Unity出稿
-    elif spend['ad_name'] == 'Unity':
-#        worksheet.update_cell(target.row, 22, spend['installs'])
-#        worksheet.update_cell(target.row, 23, SPEND)
+    elif spend['ad_name'] == 'Unity Ads':
         target_cells[21].value=spend['installs']
         target_cells[22].value=SPEND
 
     # Facebook出稿
     elif spend['ad_name'] == 'Facebook':
-#        worksheet.update_cell(target.row, 24, spend['installs'])
-#        worksheet.update_cell(target.row, 25, SPEND)
         target_cells[23].value=spend['installs']
         target_cells[24].value=SPEND
 
     # ironSource出稿
     elif spend['ad_name'] == 'ironSource':
-#        worksheet.update_cell(target.row, 26, spend['installs'])
-#        worksheet.update_cell(target.row, 27, SPEND)
         target_cells[25].value=spend['installs']
         target_cells[26].value=SPEND
 
     # Google Ads出稿
     elif spend['ad_name'] == 'Google Ads':
-#        worksheet.update_cell(target.row, 31, spend['installs'])
-#        worksheet.update_cell(target.row, 32, SPEND)
         target_cells[30].value=spend['installs']
         target_cells[31].value=SPEND
 
     # TikTok出稿
     elif spend['ad_name'] == 'TikTok':
-#        worksheet.update_cell(target.row, 33, spend['installs'])
-#        worksheet.update_cell(target.row, 34, SPEND)
         target_cells[32].value=spend['installs']
         target_cells[33].value=SPEND
 
     # Snapchat出稿
     elif spend['ad_name'] == 'Snapchat':
-#        worksheet.update_cell(target.row, 37, spend['installs'])
-#        worksheet.update_cell(target.row, 38, SPEND)
         target_cells[36].value=spend['installs']
         target_cells[37].value=SPEND
 
     # Mintegral出稿
     elif spend['ad_name'] == 'Mintegral':
-#        worksheet.update_cell(target.row, 39, spend['installs'])
-#        worksheet.update_cell(target.row, 40, SPEND)
         target_cells[38].value=spend['installs']
         target_cells[39].value=SPEND
 
     # Apple Search Ads出稿
     elif spend['ad_name'] == 'Apple Search Ads':
-#        worksheet.update_cell(target.row, 41, spend['installs'])
-#        worksheet.update_cell(target.row, 42, SPEND)
         target_cells[40].value=spend['installs']
         target_cells[41].value=SPEND
 
     # Maio出稿
     elif spend['ad_name'] == 'Maio':
-#        worksheet.update_cell(target.row, 43, spend['installs'])
-#        worksheet.update_cell(target.row, 44, SPEND)
         target_cells[42].value=spend['installs']
         target_cells[43].value=SPEND
 
     # i-mobile Affiliate出稿
     elif spend['ad_name'] == 'i-mobile Affiliate':
-#        worksheet.update_cell(target.row, 45, spend['installs'])
-#        worksheet.update_cell(target.row, 46, SPEND)
         target_cells[44].value=spend['installs']
         target_cells[45].value=SPEND
 
     else:
         print("DEBUG DEBUG DEBUG!")
         print(str(spend['ad_name']) + " : " + str(SPEND))
-
 
 with open(LOG, mode='a') as f:
     f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_spend_tt end\n")
