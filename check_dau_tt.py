@@ -73,6 +73,7 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
 
     # Googleスプレッドシート無ければ作成
     try:
+        sleep(1)
         worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
         print("ファイルオープン成功")
 
@@ -80,19 +81,18 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
         with open(LOG, mode='a') as f:
             f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : API制限 ファイルオープン失敗 再試行 " + SPREADSHEET_NAME + "\n")
 
-        sleep(3)
+        sleep(5)
         worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
 
     except:
         with open(LOG, mode='a') as f:
             f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : ファイル作成 " + SPREADSHEET_NAME + "\n")
+            f.write(str(type(e)) + "\n")
+            f.write(str(e) + "\n")
 
         new_file_body = {
             'name': SPREADSHEET_NAME,  # 新しいファイルのファイル名. 省略も可能
             'parents': ['1Z6nHs-LoO8D_HdXuY2wkH5yd2Uh70daP'],  # Copy先のFolder ID. 省略も可能
-            'type': 'user',
-            'role': 'owner',
-            'emailAddress': 'ishizuka@tokyo-tsushin.com',
         }
 
         print("ファイル作成")
@@ -136,7 +136,7 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
         sleep(1)
         worksheet.append_row(target_list, value_input_option='USER_ENTERED')
 
-        # 最終行に日付追加
+        # 追加行取得
         sleep(1)
         target = worksheet.find(str(CHECK_DATE))
         sleep(1)
