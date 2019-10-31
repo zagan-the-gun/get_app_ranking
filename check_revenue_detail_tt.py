@@ -98,16 +98,15 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
             sleep(3)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
 
-        except:
+        except Exception as e:
             with open(LOG, mode='a') as f:
                 f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_detail_tt : ファイル作成 " + SPREADSHEET_NAME + "\n")
+                f.write(str(type(e)) + "\n")
+                f.write(str(e) + "\n")
 
             new_file_body = {
                 'name': SPREADSHEET_NAME,  # 新しいファイルのファイル名. 省略も可能
                 'parents': ['1Z6nHs-LoO8D_HdXuY2wkH5yd2Uh70daP'],  # Copy先のFolder ID. 省略も可能
-                'type': 'user',
-                'role': 'owner',
-                'emailAddress': 'ishizuka@tokyo-tsushin.com',
             }
 
             print("ファイル作成")
