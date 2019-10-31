@@ -81,7 +81,7 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
             SPREADSHEET_NAME="BOT_" + pa_revenue['app_name'] + "_Android／シミュレーション"
     
         if DEBUG:
-            print(str(CHECK_DATE) + ": check_revenue_tt : " + SPREADSHEET_NAME)
+            print(str(CHECK_DATE) + ": check_revenue_detail_tt : " + SPREADSHEET_NAME)
     
         # Googleスプレッドシート無ければ作成
         try:
@@ -93,14 +93,14 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
 
         except gspread.exceptions.APIError as e:
             with open(LOG, mode='a') as f:
-                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : API制限 ファイルオープン失敗 再試行 " + SPREADSHEET_NAME + "\n")
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_detail_tt : API制限 ファイルオープン失敗 再試行 " + SPREADSHEET_NAME + "\n")
 
             sleep(3)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
 
         except:
             with open(LOG, mode='a') as f:
-                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : ファイル作成 " + SPREADSHEET_NAME + "\n")
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_detail_tt : ファイル作成 " + SPREADSHEET_NAME + "\n")
 
             new_file_body = {
                 'name': SPREADSHEET_NAME,  # 新しいファイルのファイル名. 省略も可能

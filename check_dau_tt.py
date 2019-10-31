@@ -69,7 +69,7 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
         SPREADSHEET_NAME="BOT_" + event['app_name'] + "_Android／シミュレーション"
 
     if DEBUG:
-        print(str(CHECK_DATE) + ": check_spend_tt : " + SPREADSHEET_NAME)
+        print(str(CHECK_DATE) + ": check_dau_tt : " + SPREADSHEET_NAME)
 
     # Googleスプレッドシート無ければ作成
     try:

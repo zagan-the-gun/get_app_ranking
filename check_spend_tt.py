@@ -91,14 +91,14 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id']), key=lambda x:x
 
         except gspread.exceptions.APIError as e:
             with open(LOG, mode='a') as f:
-                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : API制限 ファイルオープン失敗 再試行 " + SPREADSHEET_NAME + "\n")
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_spend_tt : API制限 ファイルオープン失敗 再試行 " + SPREADSHEET_NAME + "\n")
 
             sleep(3)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
 
         except:
             with open(LOG, mode='a') as f:
-                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : ファイル作成 " + SPREADSHEET_NAME + "\n")
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_spend_tt : ファイル作成 " + SPREADSHEET_NAME + "\n")
 
             new_file_body = {
                 'name': SPREADSHEET_NAME,  # 新しいファイルのファイル名. 省略も可能
