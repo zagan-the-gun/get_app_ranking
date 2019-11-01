@@ -85,8 +85,6 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
     
         # Googleスプレッドシート無ければ作成
         try:
-            # gcはいずれ消す
-#            gc = gspread.authorize(credentials)
             sleep(1)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
             print("ファイルオープン成功")
@@ -95,7 +93,7 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
             with open(LOG, mode='a') as f:
                 f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_detail_tt : API制限 ファイルオープン失敗 再試行 " + SPREADSHEET_NAME + "\n")
 
-            sleep(3)
+            sleep(10)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
 
         except Exception as e:
@@ -125,6 +123,12 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
             sleep(1)
             target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
 
+            # 初期化
+            target_cells[3].value=0
+            target_cells[4].value=0
+            target_cells[6].value=0
+            target_cells[7].value=0
+
         # 無いので行を追加
         except gspread.exceptions.CellNotFound as e:
             if DEBUG:
@@ -153,6 +157,7 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
             target_list[7]=0
 
             # 最終行に追加
+            sleep(1)
             worksheet.append_row(target_list, value_input_option='USER_ENTERED')
 
             # 取得
@@ -168,12 +173,6 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
 
         except Exception as e:
             print(type(e))
-
-        # 初期化
-        target_cells[3].value=0
-        target_cells[4].value=0
-        target_cells[6].value=0
-        target_cells[7].value=0
 
     # revenueをドルに戻す
     REVENUE=pa_revenue['revenue']/100
