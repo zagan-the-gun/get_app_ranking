@@ -81,6 +81,12 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
         with open(LOG, mode='a') as f:
             f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : API制限 ファイルオープン失敗 再試行 " + SPREADSHEET_NAME + "\n")
 
+        # OAuth処理
+        scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
+        sleep(5)
+        credentials = ServiceAccountCredentials.from_json_keyfile_name(KEYFILE_PATH, scope)
+        sleep(5)
+        gc = gspread.authorize(credentials)
         sleep(5)
         worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
 
