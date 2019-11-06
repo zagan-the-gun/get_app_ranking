@@ -93,7 +93,7 @@ for revenue in sorted(sorted(apps_revenue, key=lambda x:x['app_id']), key=lambda
             with open(LOG, mode='a') as f:
                 f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_tt : API制限 ファイルオープン失敗 再試行 " + SPREADSHEET_NAME + "\n")
 
-            sleep(6)
+            sleep(10)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
 
         except:
@@ -217,15 +217,18 @@ for revenue in sorted(sorted(apps_revenue, key=lambda x:x['app_id']), key=lambda
 
     # Google AdMob出稿
     elif revenue['ad_name'] == 'Google AdMob':
-        pass
+        if DEBUG:
+            print(str(revenue['ad_name']) + " : " + str(REVENUE))
 
     # Applovin出稿
     elif revenue['ad_name'] == 'Applovin':
-        pass
+        if DEBUG:
+            print(str(revenue['ad_name']) + " : " + str(REVENUE))
 
     else:
-        print("DEBUG DEBUG DEBUG!")
-        print(str(revenue['ad_name']) + " : " + str(REVENUE))
+        if DEBUG:
+            print("DEBUG DEBUG DEBUG!")
+            print(str(revenue['ad_name']) + " : " + str(REVENUE))
 
 with open(LOG, mode='a') as f:
     f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_tt end\n")
