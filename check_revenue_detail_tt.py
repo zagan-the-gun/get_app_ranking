@@ -55,7 +55,6 @@ FILE_ID='1ogWdNTKbLVfGGD7-EMrBWfbwXzu_swn7fqmQk2X-2Us'
 PREV_APP_ID=""
 JUNK=0
 # Redshiftから収入取得
-#apps_pa_revenue=get_dict_resultset("SELECT pa.name AS pa_name, a.id AS app_id, a.name AS app_name, platform, bundle_id, ad.name AS ad_name, Sum(revenue) AS revenue FROM (((daily_ad_revenue dar LEFT OUTER JOIN publisher_apps pa ON dar.publisher_app_id = pa.id) LEFT OUTER JOIN apps a ON pa.app_id = a.id) LEFT OUTER JOIN ad_networks ad ON pa.ad_network_id = ad.id) WHERE date = '{}' GROUP BY pa.ad_network_id, pa.name, a.id, a.name, store_id, platform, bundle_id, ad.name".format(str(CHECK_DATE)))
 apps_pa_revenue=get_dict_resultset("SELECT Sum(offerwall_revenue) AS offerwall_revenue, Sum(banner_revenue) AS banner_revenue, Sum(interstitial_revenue) AS interstitial_revenue, Sum(native_revenue) AS native_revenue, Sum(video_revenue) AS video_revenue, Sum(other_revenue) AS other_revenue, pa.name AS pa_name, a.id AS app_id, a.name AS app_name, platform, bundle_id, ad.name AS ad_name, Sum(revenue) AS revenue FROM (((daily_ad_revenue dar LEFT OUTER JOIN publisher_apps pa ON dar.publisher_app_id = pa.id) LEFT OUTER JOIN apps a ON pa.app_id = a.id) LEFT OUTER JOIN ad_networks ad ON pa.ad_network_id = ad.id) WHERE date = '{}' GROUP BY pa.ad_network_id, pa.name, a.id, a.name, store_id, platform, bundle_id, ad.name".format(str(CHECK_DATE)))
 
 for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=lambda x:x['bundle_id']):
@@ -198,15 +197,12 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
         if DEBUG:
             print(pa_revenue['app_name'] + " : " + pa_revenue['platform'] + " : " + str(pa_revenue['bundle_id']) + " : " + pa_revenue['ad_name'] + " : 広告収入 $" + str(REVENUE))
             print(str(pa_revenue))
+
         COL_BANNER=6
         COL_INTERSTITIAL=7
+        # Applovinはカラムで振り分け
         target_cells[COL_BANNER].value=float(target_cells[COL_BANNER].value or 0) + (float(pa_revenue['offerwall_revenue'])/100) + (float(pa_revenue['banner_revenue'])/100) + (float(pa_revenue['native_revenue'])/100)
         target_cells[COL_INTERSTITIAL].value=float(target_cells[COL_INTERSTITIAL].value or 0) + (float(pa_revenue['interstitial_revenue'])/100) + (float(pa_revenue['video_revenue'])/100) + (float(pa_revenue['other_revenue'])/100)
-#        if 'バナー' in pa_revenue['pa_name'] or 'Banner' in pa_revenue['pa_name'] or 'banner' in pa_revenue['pa_name'] or 'レクタングル' in pa_revenue['pa_name'] or 'Rectangle' in pa_revenue['pa_name'] or 'rectangle' in pa_revenue['pa_name']:
-#            target_cells[COL_BANNER].value=float(target_cells[COL_BANNER].value or 0) + float(REVENUE)
-
-#        else:
-#            target_cells[COL_INTERSTITIAL].value=float(target_cells[COL_INTERSTITIAL].value or 0) + float(REVENUE)
 
     else:
         print(str(pa_revenue['ad_name']) + " : " + str(pa_revenue['pa_name']))
