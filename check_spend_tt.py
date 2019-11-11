@@ -119,9 +119,11 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id']), key=lambda x:x
     
         # 当日行取得、無ければ作る
         try:
+            sleep(1)
             target = worksheet.find(str(CHECK_DATE))
             sleep(2)
             target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
+            target_cells[2].value=spend['app_name']
 
         # 無いので行を追加
         except gspread.exceptions.CellNotFound as e:

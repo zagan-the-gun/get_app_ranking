@@ -127,6 +127,7 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
             target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
 
             # 初期化
+            target_cells[2].value=pa_revenue['app_name']
             target_cells[3].value=0
             target_cells[4].value=0
             target_cells[6].value=0

@@ -114,6 +114,7 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
         target = worksheet.find(str(CHECK_DATE))
         sleep(1)
         target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
+        target_cells[2].value=event['app_name']
 
     # 無いので行を追加
     except gspread.exceptions.CellNotFound as e:
