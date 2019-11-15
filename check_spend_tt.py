@@ -25,7 +25,7 @@ SLACK_URL=args[5]
 KEYFILE_PATH=args[6]
 DATE=int(args[7])
 LOG='/tmp/superset.log'
-DEBUG=True
+DEBUG=False
 CHECK_DATE=(datetime.date.today())-datetime.timedelta(days=DATE)
 
 with open(LOG, mode='a') as f:
@@ -63,7 +63,7 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id']), key=lambda x:x
     elif PREV_APP_ID == spend['app_id']:
         i = 1
     else:
-        sleep(1)
+        sleep(2)
         worksheet.update_cells(target_cells, value_input_option='USER_ENTERED')
         PREV_APP_ID = spend['app_id']
         i = 0
@@ -85,9 +85,10 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id']), key=lambda x:x
         try:
             # gc行は要らないかも
 #            gc = gspread.authorize(credentials)
-            sleep(1)
+            sleep(2)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
-            print("ファイルオープン成功")
+            if DEBUG:
+                print("ファイルオープン成功")
 
         except gspread.exceptions.APIError as e:
             with open(LOG, mode='a') as f:
@@ -107,9 +108,10 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id']), key=lambda x:x
                 'role': 'owner',
                 'emailAddress': 'ishizuka@tokyo-tsushin.com',
             }
-        
-            print("ファイル作成")
-            print(FILE_ID)
+
+            if DEBUG:
+                print("ファイル作成")
+                print(FILE_ID)
             new_file = service.files().copy(
                 fileId=FILE_ID, body=new_file_body
             ).execute()
@@ -119,7 +121,7 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id']), key=lambda x:x
     
         # 当日行取得、無ければ作る
         try:
-            sleep(1)
+            sleep(2)
             target = worksheet.find(str(CHECK_DATE))
             sleep(2)
             target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
@@ -166,8 +168,6 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id']), key=lambda x:x
     if DEBUG:
         print(spend['app_name'] + " : " + spend['platform'] + " : " + str(spend['store_id']) + " : " + str(spend['bundle_id']) + " : " + spend['ad_name'] + " : インストール " + str(spend['installs']) + " : 広告支出 $" + str(SPEND))
 
-    # アプリ名
-    worksheet.update_cell(target.row, 3, spend['app_name'])
     # Applovin出稿
     if spend['ad_name'] == 'Applovin':
         target_cells[17].value=spend['installs']
@@ -197,9 +197,16 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id']), key=lambda x:x
     elif spend['ad_name'] == 'Google Ads':
         target_cells[30].value=spend['installs']
         target_cells[31].value=SPEND
+        print(spend['ad_name'])
+        print(spend)
 
     # TikTok出稿
     elif spend['ad_name'] == 'TikTok':
+        target_cells[32].value=spend['installs']
+        target_cells[33].value=SPEND
+
+    # Toutiao出稿
+    elif spend['ad_name'] == 'Toutiao':
         target_cells[32].value=spend['installs']
         target_cells[33].value=SPEND
 
