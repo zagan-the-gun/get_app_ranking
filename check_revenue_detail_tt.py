@@ -63,10 +63,21 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
     elif PREV_APP_ID == pa_revenue['app_id']:
         i = 1
     else:
-        sleep(1)
-        worksheet.update_cells(target_cells, value_input_option='USER_ENTERED')
-        PREV_APP_ID = pa_revenue['app_id']
         i = 0
+        PREV_APP_ID = pa_revenue['app_id']
+
+        try:
+            sleep(2)
+            worksheet.update_cells(target_cells, value_input_option='USER_ENTERED')
+
+        except gspread.exceptions.APIError as e:
+            with open(LOG, mode='a') as f:
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_detail_tt : API制限 データ書き込み失敗 スキップ " + SPREADSHEET_NAME + "\n")
+            if DEBUG:
+                print(type(e))
+                print("API制限 データ書き込み失敗 スキップ " + SPREADSHEET_NAME)
+            continue
+
     PREV_APP_ID = pa_revenue['app_id']
 
     # 初期処理
@@ -82,16 +93,21 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
     
         # Googleスプレッドシート無ければ作成
         try:
-            sleep(1)
+            sleep(2)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
             print("ファイルオープン成功")
 
         except gspread.exceptions.APIError as e:
             with open(LOG, mode='a') as f:
-                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_detail_tt : API制限 ファイルオープン失敗 再試行 " + SPREADSHEET_NAME + "\n")
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_detail_tt : API制限 ファイルオープン失敗 スキップ " + SPREADSHEET_NAME + "\n")
 
-            sleep(10)
-            worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
+            if DEBUG:
+                print(type(e))
+                print("API制限 ファイルオープン失敗 スキップ " + SPREADSHEET_NAME)
+            continue
+
+#            sleep(10)
+#            worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
 
         except Exception as e:
             with open(LOG, mode='a') as f:
@@ -110,14 +126,14 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
                 fileId=FILE_ID, body=new_file_body
             ).execute()
             gc = gspread.authorize(credentials)
-            sleep(1)
+            sleep(2)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
 
         # 当日行取得、無ければ作る
         try:
-            sleep(1)
+            sleep(2)
             target = worksheet.find(str(CHECK_DATE))
-            sleep(1)
+            sleep(2)
             target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
 
             # 初期化
@@ -135,14 +151,14 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
                 print(e)
 
             # 売上集計シートに行追加
-            sleep(1)
+            sleep(2)
             sales_summary = gc.open(SPREADSHEET_NAME).worksheet("売上集計")
             # リファレンス行をコピー
-            sleep(1)
+            sleep(2)
             reference_list = sales_summary.row_values(11, value_render_option='FORMULA')
             # 最終行にペースト
             del reference_list[0]
-            sleep(1)
+            sleep(2)
             sales_summary.append_row(reference_list, value_input_option='USER_ENTERED')
 
             # 書き込みデータ作成
@@ -155,22 +171,27 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
             target_list[7]=0
 
             # 最終行に追加
-            sleep(1)
+            sleep(2)
             worksheet.append_row(target_list, value_input_option='USER_ENTERED')
 
             # 取得
-            sleep(1)
+            sleep(2)
             target = worksheet.find(str(CHECK_DATE))
-            sleep(1)
+            sleep(2)
             target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
 
         except gspread.exceptions.APIError as e:
-            print(type(e))
-            print("API制限 スキップ")
+            with open(LOG, mode='a') as f:
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_detail_tt : API制限 当日行処理失敗 スキップ " + SPREADSHEET_NAME + "\n")
+            if DEBUG:
+                print(type(e))
+                print("API制限 当日行処理失敗 スキップ " + SPREADSHEET_NAME)
             continue
 
         except Exception as e:
-            print(type(e))
+            if DEBUG:
+                print(type(e))
+                print("新規エラー")
 
     # revenueをドルに戻す
     REVENUE=pa_revenue['revenue']/100
