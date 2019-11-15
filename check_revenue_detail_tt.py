@@ -72,7 +72,7 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
 
         except gspread.exceptions.APIError as e:
             with open(LOG, mode='a') as f:
-                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_detail_tt : API制限 データ書き込み失敗 スキップ " + SPREADSHEET_NAME + "\n")
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_detail_tt : API制限 データ書き込み失敗 スキップ : " + str(CHECK_DATE) + " : " + SPREADSHEET_NAME + "\n")
             if DEBUG:
                 print(type(e))
                 print("API制限 データ書き込み失敗 スキップ " + SPREADSHEET_NAME)
@@ -99,7 +99,7 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
 
         except gspread.exceptions.APIError as e:
             with open(LOG, mode='a') as f:
-                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_detail_tt : API制限 ファイルオープン失敗 スキップ " + SPREADSHEET_NAME + "\n")
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_detail_tt : API制限 ファイルオープン失敗 スキップ : " + str(CHECK_DATE) + " : " + SPREADSHEET_NAME + "\n")
 
             if DEBUG:
                 print(type(e))
@@ -182,7 +182,7 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
 
         except gspread.exceptions.APIError as e:
             with open(LOG, mode='a') as f:
-                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_detail_tt : API制限 当日行処理失敗 スキップ " + SPREADSHEET_NAME + "\n")
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_detail_tt : API制限 当日行処理失敗 スキップ : " + str(CHECK_DATE) + " : " + SPREADSHEET_NAME + "\n")
             if DEBUG:
                 print(type(e))
                 print("API制限 当日行処理失敗 スキップ " + SPREADSHEET_NAME)
