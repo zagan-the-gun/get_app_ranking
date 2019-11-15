@@ -79,7 +79,12 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
 
     except gspread.exceptions.APIError as e:
         with open(LOG, mode='a') as f:
-            f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : API制限 ファイルオープン失敗 再試行 " + SPREADSHEET_NAME + "\n")
+            f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : API制限 ファイルオープン失敗 スキップ : " + str(CHECK_DATE) + " : " + SPREADSHEET_NAME + "\n")
+
+        if DEBUG:
+            print(type(e))
+            print("API制限 ファイルオープン失敗 スキップ " + SPREADSHEET_NAME)
+        continue
 
         # OAuth処理
         scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
@@ -150,12 +155,22 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
         target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
 
     except gspread.exceptions.APIError as e:
-        print(type(e))
-        print("API制限 スキップ")
+        with open(LOG, mode='a') as f:
+            f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : API制限 当日行処理失敗 スキップ : " + str(CHECK_DATE) + " : " + SPREADSHEET_NAME + "\n")
+
+        if DEBUG:
+            print(type(e))
+            print("API制限 当日行処理失敗 スキップ " + SPREADSHEET_NAME)
         continue
 
     except Exception as e:
-        print(type(e))
+        with open(LOG, mode='a') as f:
+            f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : 新規エラー 当日行処理失敗 スキップ : " + str(CHECK_DATE) + " : " + SPREADSHEET_NAME + "\n")
+
+        if DEBUG:
+            print(type(e))
+            print("新規エラー")
+        continue
 
     # データ書き込み
     try:
@@ -167,13 +182,22 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
         worksheet.update_cells(target_cells, value_input_option='USER_ENTERED')
 
     except gspread.exceptions.APIError as e:
-        print(type(e))
-        print("API制限3秒待機")
-        sleep(3)
-        worksheet.update_cells(target_cells, value_input_option='USER_ENTERED')
+        with open(LOG, mode='a') as f:
+            f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : API制限 データ書き込み失敗 スキップ : " + str(CHECK_DATE) + " : " + SPREADSHEET_NAME + "\n")
+
+        if DEBUG:
+            print(type(e))
+            print("API制限 データ書き込み失敗 スキップ " + SPREADSHEET_NAME)
+        continue
 
     except Exception as e:
-        print(type(e))
+        with open(LOG, mode='a') as f:
+            f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_dau_tt : 新規エラー データ書き込み失敗 スキップ : " + str(CHECK_DATE) + " : " + SPREADSHEET_NAME + "\n")
+
+        if DEBUG:
+            print(type(e))
+            print("新規エラー")
+        continue
 
     # DAU
     if DEBUG:
