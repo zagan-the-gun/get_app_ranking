@@ -65,10 +65,21 @@ for revenue in sorted(sorted(apps_revenue, key=lambda x:x['app_id']), key=lambda
     elif PREV_APP_ID == revenue['app_id']:
         i = 1
     else:
-        sleep(1)
-        worksheet.update_cells(target_cells, value_input_option='USER_ENTERED')
-        PREV_APP_ID = revenue['app_id']
         i = 0
+        PREV_APP_ID = revenue['app_id']
+
+        try:
+            sleep(1)
+            worksheet.update_cells(target_cells, value_input_option='USER_ENTERED')
+
+        except gspread.exceptions.APIError as e:
+            with open(LOG, mode='a') as f:
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_tt : API制限 データ書き込み失敗 スキップ : " + str(CHECK_DATE) + " : " + SPREADSHEET_NAME + "\n")
+
+            if DEBUG:
+                print(type(e))
+                print("API制限 データ書き込み失敗 スキップ" + SPREADSHEET_NAME)
+            continue
 
     PREV_APP_ID = revenue['app_id']
 
@@ -87,29 +98,35 @@ for revenue in sorted(sorted(apps_revenue, key=lambda x:x['app_id']), key=lambda
         try:
             sleep(1)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
-            print("ファイルオープン成功")
+            if DEBUG:
+                print("ファイルオープン成功")
 
         except gspread.exceptions.APIError as e:
             with open(LOG, mode='a') as f:
-                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_tt : API制限 ファイルオープン失敗 再試行 " + SPREADSHEET_NAME + "\n")
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_tt : API制限 ファイルオープン失敗 スキップ : " + str(CHECK_DATE) + " : " + SPREADSHEET_NAME + "\n")
 
-            sleep(10)
-            worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
+            if DEBUG:
+                print(type(e))
+                print("API制限 ファイルオープン失敗 スキップ " + SPREADSHEET_NAME)
+            continue
 
-        except:
+#            sleep(10)
+#            worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
+
+        except Exception as e:
             with open(LOG, mode='a') as f:
                 f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_tt : ファイル作成 " + SPREADSHEET_NAME + "\n")
+                f.write(str(type(e)) + "\n")
+                f.write(str(e) + "\n")
 
             new_file_body = {
                 'name': SPREADSHEET_NAME,  # 新しいファイルのファイル名. 省略も可能
                 'parents': ['1Z6nHs-LoO8D_HdXuY2wkH5yd2Uh70daP'],  # Copy先のFolder ID. 省略も可能
-                'type': 'user',
-                'role': 'owner',
-                'emailAddress': 'ishizuka@tokyo-tsushin.com',
             }
 
-            print("ファイル作成")
-            print(FILE_ID)
+            if DEBUG:
+                print("ファイル作成")
+                print(FILE_ID)
             new_file = service.files().copy(
                 fileId=FILE_ID, body=new_file_body
             ).execute()
@@ -159,13 +176,18 @@ for revenue in sorted(sorted(apps_revenue, key=lambda x:x['app_id']), key=lambda
             target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
 
         except gspread.exceptions.APIError as e:
-            print(type(e))
-            print("API制限 スキップ")
+            with open(LOG, mode='a') as f:
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_tt : API制限 当日行処理失敗 スキップ : " + str(CHECK_DATE) + " : " + SPREADSHEET_NAME + "\n")
+
+            if DEBUG:
+                print(type(e))
+                print("API制限 当日行処理失敗 スキップ " + SPREADSHEET_NAME)
             continue
 
         except Exception as e:
-            print(type(e))
-            print("新規エラー")
+            if DEBUG:
+                print(type(e))
+                print("新規エラー")
 
     # revenueをドルに戻す
     REVENUE=revenue['revenue']/100
@@ -187,6 +209,10 @@ for revenue in sorted(sorted(apps_revenue, key=lambda x:x['app_id']), key=lambda
     # FIVE出稿
     elif revenue['ad_name'] == 'FIVE':
         target_cells[10].value=REVENUE
+
+    # Maio出稿
+    elif revenue['ad_name'] == 'Maio':
+        target_cells[11].value=REVENUE
 
     # i-mobile Affiliate出稿
     elif revenue['ad_name'] == 'i-mobile Affiliate':
@@ -227,6 +253,9 @@ for revenue in sorted(sorted(apps_revenue, key=lambda x:x['app_id']), key=lambda
             print(str(revenue['ad_name']) + " : " + str(REVENUE))
 
     else:
+        with open(LOG, mode='a') as f:
+            f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_revenue_tt : 新規アドネットワーク : " + str(revenue['ad_name']) + " : " + str(REVENUE) +  " : " + SPREADSHEET_NAME + "\n")
+
         if DEBUG:
             print("DEBUG DEBUG DEBUG!")
             print(str(revenue['ad_name']) + " : " + str(REVENUE))
