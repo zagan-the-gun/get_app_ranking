@@ -25,7 +25,7 @@ SLACK_URL=args[5]
 KEYFILE_PATH=args[6]
 DATE=int(args[7])
 LOG='/tmp/superset.log'
-DEBUG=True
+DEBUG=False
 CHECK_DATE=(datetime.date.today())-datetime.timedelta(days=DATE)
 
 with open(LOG, mode='a') as f:
@@ -95,7 +95,8 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
         try:
             sleep(2)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
-            print("ファイルオープン成功")
+            if DEBUG:
+                print("ファイルオープン成功")
 
         except gspread.exceptions.APIError as e:
             with open(LOG, mode='a') as f:
@@ -105,9 +106,6 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
                 print(type(e))
                 print("API制限 ファイルオープン失敗 スキップ " + SPREADSHEET_NAME)
             continue
-
-#            sleep(10)
-#            worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
 
         except Exception as e:
             with open(LOG, mode='a') as f:
@@ -120,8 +118,9 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
                 'parents': ['1Z6nHs-LoO8D_HdXuY2wkH5yd2Uh70daP'],  # Copy先のFolder ID. 省略も可能
             }
 
-            print("ファイル作成")
-            print(FILE_ID)
+            if DEBUG:
+                print("ファイル作成")
+                print(FILE_ID)
             new_file = service.files().copy(
                 fileId=FILE_ID, body=new_file_body
             ).execute()
