@@ -73,7 +73,7 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
 
     # Googleスプレッドシート無ければ作成
     try:
-        sleep(1)
+        sleep(2)
         worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
         print("ファイルオープン成功")
 
