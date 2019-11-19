@@ -92,7 +92,7 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id'] or ""), key=lamb
         PREV_APP_ID = spend['app_id']
 
         try:
-            sleep(2)
+            sleep(1)
             worksheet.update_cells(target_cells, value_input_option='USER_ENTERED')
 
         except gspread.exceptions.APIError as e:
