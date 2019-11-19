@@ -25,7 +25,7 @@ SLACK_URL=args[5]
 KEYFILE_PATH=args[6]
 DATE=int(args[7])
 LOG='/tmp/superset.log'
-DEBUG=True
+DEBUG=False
 CHECK_DATE=(datetime.date.today())-datetime.timedelta(days=DATE)
 
 with open(LOG, mode='a') as f:
@@ -73,7 +73,7 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
 
     # Googleスプレッドシート無ければ作成
     try:
-        sleep(2)
+        sleep(4)
         worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
         print("ファイルオープン成功")
 
@@ -106,18 +106,24 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
             'parents': ['1Z6nHs-LoO8D_HdXuY2wkH5yd2Uh70daP'],  # Copy先のFolder ID. 省略も可能
         }
 
-        print("ファイル作成")
+        if DEBUG:
+            print("ファイル作成")
+            print(FILE_ID)
+
+        sleep(4)
         new_file = service.files().copy(
             fileId=FILE_ID, body=new_file_body
         ).execute()
 
+        gc = gspread.authorize(credentials)
+        sleep(4)
         worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
 
     # 当日行取得、無ければ作る
     try:
-        sleep(1)
+        sleep(4)
         target = worksheet.find(str(CHECK_DATE))
-        sleep(1)
+        sleep(4)
         target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
         target_cells[2].value=event['app_name']
 
@@ -129,14 +135,14 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
             print(e)
 
         # 売上集計シートに行追加
-        sleep(2)
+        sleep(4)
         sales_summary = gc.open(SPREADSHEET_NAME).worksheet("売上集計")
         # リファレンス行をコピー
-        sleep(2)
+        sleep(4)
         reference_list = sales_summary.row_values(11, value_render_option='FORMULA')
         # 最終行にペースト
         del reference_list[0]
-        sleep(2)
+        sleep(4)
         sales_summary.append_row(reference_list, value_input_option='USER_ENTERED')
 
         # 書き込みデータ作成
@@ -145,13 +151,13 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
         target_list[2]=event['app_name']
 
         # 最終行に追加
-        sleep(2)
+        sleep(4)
         worksheet.append_row(target_list, value_input_option='USER_ENTERED')
 
         # 追加行取得
-        sleep(2)
+        sleep(4)
         target = worksheet.find(str(CHECK_DATE))
-        sleep(2)
+        sleep(4)
         target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
 
     except gspread.exceptions.APIError as e:
