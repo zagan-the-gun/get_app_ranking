@@ -73,7 +73,7 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
 
     # Googleスプレッドシート無ければ作成
     try:
-        sleep(4)
+        sleep(3)
         worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
         print("ファイルオープン成功")
 
@@ -121,9 +121,9 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
 
     # 当日行取得、無ければ作る
     try:
-        sleep(4)
+        sleep(3)
         target = worksheet.find(str(CHECK_DATE))
-        sleep(4)
+        sleep(3)
         target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
         target_cells[2].value=event['app_name']
 
