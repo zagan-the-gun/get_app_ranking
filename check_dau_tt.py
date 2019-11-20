@@ -184,7 +184,7 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
         target_cells[27].value=event['daily_active_users']
         target_cells[28].value=event['tracked_installs']
 
-        sleep(1)
+#        sleep(1)
         worksheet.update_cells(target_cells, value_input_option='USER_ENTERED')
 
     except gspread.exceptions.APIError as e:
