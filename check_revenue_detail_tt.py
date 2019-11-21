@@ -133,9 +133,9 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
 
         # 当日行取得、無ければ作る
         try:
-            sleep(3)
+            sleep(4)
             target = worksheet.find(str(CHECK_DATE))
-            sleep(3)
+            sleep(4)
             target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
 
             # 初期化
