@@ -24,12 +24,12 @@ DATABASE_URL='postgresql://'+ args[1] + ':' + args[2] + '@'+ args[3] + ':5439/'+
 SLACK_URL=args[5]
 KEYFILE_PATH=args[6]
 LOG='/tmp/superset.log'
-DEBUG=True
+DEBUG=False
 CHECK_DATE=(datetime.date.today())-datetime.timedelta(days=31)
 TODAY=datetime.date.today()
 
 with open(LOG, mode='a') as f:
-    f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_retention_tt start\n")
+    f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_retention_tt start : " + CHECK_DATE + "\n")
 
 def get_dict_resultset(sql):
     with psycopg2.connect(DATABASE_URL) as conn:
@@ -136,40 +136,42 @@ for retention in sorted(sorted(sorted(apps_retention, reverse=True, key=lambda x
 
         # Googleスプレッドシート無ければ作成
         try:
-            # gc行は要らないかも
-#            gc = gspread.authorize(credentials)
-            sleep(1)
+            sleep(3)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("残存日数計算")
-            print("ファイルオープン成功")
+            if DEBUG:
+                print("ファイルオープン成功")
 
         except gspread.exceptions.APIError as e:
             with open(LOG, mode='a') as f:
-                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_retention_tt : API制限 ファイルオープン失敗 再試行 " + SPREADSHEET_NAME + "\n")
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_retention_tt : API制限 ファイルオープン失敗 スキップ : " + str(CHECK_DATE) + " : " + SPREADSHEET_NAME + "\n")
 
-            sleep(3)
-            worksheet = gc.open(SPREADSHEET_NAME).worksheet("残存日数計算")
-
-        except Exception as e:
             if DEBUG:
                 print(type(e))
-                print("ファイル作成")
-                print(e)
+                print("API制限 ファイルオープン失敗 スキップ " + SPREADSHEET_NAME)
+            continue
 
+        except Exception as e:
             with open(LOG, mode='a') as f:
                 f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_retention_tt : ファイル作成 " + SPREADSHEET_NAME + "\n")
+                f.write(str(type(e)) + "\n")
+                f.write(str(e) + "\n")
 
             new_file_body = {
                 'name': SPREADSHEET_NAME,  # 新しいファイルのファイル名. 省略も可能
                 'parents': ['1Z6nHs-LoO8D_HdXuY2wkH5yd2Uh70daP'],  # Copy先のFolder ID. 省略も可能
             }
 
-            print("ファイル作成")
-            print(FILE_ID)
+            if DEBUG:
+                print("ファイル作成")
+                print(FILE_ID)
+
+            sleep(4)
             new_file = service.files().copy(
                 fileId=FILE_ID, body=new_file_body
             ).execute()
 
             gc = gspread.authorize(credentials)
+            sleep(4)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("残存日数計算")
 
     if DEBUG:
