@@ -29,7 +29,7 @@ DEBUG=False
 CHECK_DATE=(datetime.date.today())-datetime.timedelta(days=DATE)
 
 with open(LOG, mode='a') as f:
-    f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_spend_tt start : " + CHECK_DATE + "\n")
+    f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_spend_tt start : " + str(CHECK_DATE) + "\n")
 
 def get_dict_resultset(sql):
     with psycopg2.connect(DATABASE_URL) as conn:
