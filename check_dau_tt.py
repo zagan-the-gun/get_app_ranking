@@ -75,7 +75,8 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
     try:
         sleep(4)
         worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
-        print("ファイルオープン成功")
+        if DEBUG:
+            print("ファイルオープン成功")
 
     except gspread.exceptions.APIError as e:
         with open(LOG, mode='a') as f:
