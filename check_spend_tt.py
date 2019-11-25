@@ -114,7 +114,7 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id'] or ""), key=lamb
 
         # Googleスプレッドシート無ければ作成
         try:
-            sleep(3)
+            sleep(4)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
             if DEBUG:
                 print("ファイルオープン成功")

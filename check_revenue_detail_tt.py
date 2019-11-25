@@ -93,7 +93,7 @@ for pa_revenue in sorted(sorted(apps_pa_revenue, key=lambda x:x['app_id']), key=
     
         # Googleスプレッドシート無ければ作成
         try:
-            sleep(3)
+            sleep(4)
             worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
             if DEBUG:
                 print("ファイルオープン成功")
