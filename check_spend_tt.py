@@ -82,6 +82,12 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id'] or ""), key=lamb
     if (spend['app_id'] is None) or (spend['ad_id'] is None):
         continue
 
+    if spend['ad_name'] == '自社送客':
+        continue
+
+    if spend['ad_name'] == 'Organic':
+        continue
+
     # 初回動作チェック
     if PREV_APP_ID == "":
         i = 0
