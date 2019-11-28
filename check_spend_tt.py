@@ -80,12 +80,27 @@ apps_spend=get_dict_resultset("\
 for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id'] or ""), key=lambda x:x['bundle_id'] or ""):
 
     if (spend['app_id'] is None) or (spend['ad_id'] is None):
+        if DEBUG:
+            print("spend['app_id'] is None) or (spend['ad_id'] is None)")
+            print(spend)
+        continue
+
+    if round((spend['spend'] or 0)/100, 2) == 0.0:
+        if DEBUG:
+            print("spend['spend'] == 0")
+            print(spend)
         continue
 
     if spend['ad_name'] == '自社送客':
+        if DEBUG:
+            print("spend['ad_name'] == '自社送客'")
+            print(spend)
         continue
 
     if spend['ad_name'] == 'Organic':
+        if DEBUG:
+            print("spend['ad_name'] == 'Organic'")
+            print(spend)
         continue
 
     # 初回動作チェック
@@ -98,12 +113,18 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id'] or ""), key=lamb
         PREV_APP_ID = spend['app_id']
 
         try:
-#            sleep(1)
             worksheet.update_cells(target_cells, value_input_option='USER_ENTERED')
 
         except gspread.exceptions.APIError as e:
             with open(LOG, mode='a') as f:
                 f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_spend_tt : API制限 データ書き込み失敗 スキップ : " + str(CHECK_DATE) + " : " + SPREADSHEET_NAME + "\n")
+
+            if DEBUG:
+                print(type(e))
+                print("API制限 データ書き込み失敗 スキップ" + SPREADSHEET_NAME)
+
+            continue
+
 
     PREV_APP_ID = spend['app_id']
 
