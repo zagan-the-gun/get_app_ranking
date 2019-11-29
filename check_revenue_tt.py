@@ -140,7 +140,6 @@ for revenue in sorted(sorted(apps_revenue, key=lambda x:x['app_id']), key=lambda
             target = worksheet.find(str(CHECK_DATE))
             sleep(3)
             target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
-            target_cells[2].value=revenue['app_name']
 
         # 無いので行を追加
         except gspread.exceptions.CellNotFound as e:
@@ -188,6 +187,19 @@ for revenue in sorted(sorted(apps_revenue, key=lambda x:x['app_id']), key=lambda
             if DEBUG:
                 print(type(e))
                 print("新規エラー")
+
+        # ゼロ埋め初期化
+        target_cells[5].value=0
+        target_cells[9].value=0
+        target_cells[10].value=0
+        target_cells[11].value=0
+        target_cells[12].value=0
+        target_cells[14].value=0
+        target_cells[15].value=0
+        target_cells[16].value=0
+        target_cells[29].value=0
+        target_cells[34].value=0
+        target_cells[35].value=0
 
     # revenueをドルに戻す
     REVENUE=revenue['revenue']/100
