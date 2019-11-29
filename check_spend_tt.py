@@ -85,12 +85,6 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id'] or ""), key=lamb
             print(spend)
         continue
 
-    if round((spend['spend'] or 0)/100, 2) == 0.0:
-        if DEBUG:
-            print("spend['spend'] == 0")
-            print(spend)
-        continue
-
     if spend['ad_name'] == '自社送客':
         if DEBUG:
             print("spend['ad_name'] == '自社送客'")
@@ -198,6 +192,7 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id'] or ""), key=lamb
             # リファレンス行をコピー
             sleep(4)
             reference_list = sales_summary.row_values(11, value_render_option='FORMULA')
+
             # 最終行にペースト
             del reference_list[0]
             sleep(4)
@@ -231,8 +226,35 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id'] or ""), key=lamb
         except Exception as e:
             print(type(e))
 
+        #ゼロ埋め処理
+        target_cells[17].value=0
+        target_cells[18].value=0
+        target_cells[19].value=0
+        target_cells[20].value=0
+        target_cells[21].value=0
+        target_cells[22].value=0
+        target_cells[23].value=0
+        target_cells[24].value=0
+        target_cells[25].value=0
+        target_cells[26].value=0
+        target_cells[30].value=0
+        target_cells[31].value=0
+        target_cells[32].value=0
+        target_cells[33].value=0
+        target_cells[32].value=0
+        target_cells[33].value=0
+        target_cells[36].value=0
+        target_cells[37].value=0
+        target_cells[38].value=0
+        target_cells[39].value=0
+        target_cells[40].value=0
+        target_cells[41].value=0
+        target_cells[42].value=0
+        target_cells[43].value=0
+        target_cells[44].value=0
+        target_cells[45].value=0
+
     # spendをドルに戻す
-#    SPEND=spend['spend']/100
     SPEND=round((spend['spend'] or 0)/100, 2)
     if DEBUG:
         print(spend['app_name'] + " : " + spend['platform'] + " : " + str(spend['store_id']) + " : " + str(spend['bundle_id']) + " : " + spend['ad_name'] + " : インストール " + str(spend['installs'] or 0) + " : 広告支出 $" + str(SPEND))
@@ -266,8 +288,6 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id'] or ""), key=lamb
     elif spend['ad_name'] == 'Google Ads':
         target_cells[30].value=spend['installs']
         target_cells[31].value=SPEND
-        print(spend['ad_name'])
-        print(spend)
 
     # TikTok出稿
     elif spend['ad_name'] == 'TikTok':
