@@ -60,6 +60,15 @@ apps_events=get_dict_resultset("SELECT a.bundle_id AS bundle_id, a.id AS app_id,
 for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lambda x:x['bundle_id'] or ""):
 
     if event['app_name'] is None:
+        if DEBUG:
+            print("event['app_name'] is None")
+            print(event)
+        continue
+
+    if (event['daily_active_users'] == 0) and (event['tracked_installs'] == 0):
+        if DEBUG:
+            print("(event['daily_active_users'] == 0) AND (event['tracked_installs'] == 0)")
+            print(event)
         continue
 
     # スプレッドシート名生成
@@ -141,10 +150,33 @@ for event in sorted(sorted(apps_events, key=lambda x:x['app_id'] or ""), key=lam
         # リファレンス行をコピー
         sleep(4)
         reference_list = sales_summary.row_values(11, value_render_option='FORMULA')
+
         # 最終行にペースト
         del reference_list[0]
         sleep(4)
-        sales_summary.append_row(reference_list, value_input_option='USER_ENTERED')
+        last = sales_summary.append_row(reference_list, value_input_option='USER_ENTERED')
+
+        # 関数修正
+#        last_row=gspread.utils.a1_to_rowcol(last['updates']['updatedRange'].replace("'売上集計'!", ""))[0]
+#        collection_cells = sales_summary.range(11, 108, last_row, 108)
+#        for collection in collection_cells:
+#            collection.value="=IFERROR(INDIRECT(ADDRESS(row(),107))*F$2)"
+#        sales_summary.update_cells(collection_cells, value_input_option='USER_ENTERED')
+
+        # 関数修正
+        last_row=gspread.utils.a1_to_rowcol(last['updates']['updatedRange'].replace("'売上集計'!", ""))[0]
+        collection_cells = sales_summary.range(11, 20, last_row, 20)
+        for collection in collection_cells:
+            collection.value="=INDIRECT(ADDRESS(row(),6))-SUM(INDIRECT(ADDRESS(row(),7)):INDIRECT(ADDRESS(row(),19)))"
+        sales_summary.update_cells(collection_cells, value_input_option='USER_ENTERED')
+
+        # 関数修正
+#        fix_lines=['CPI IronSource', 'CPI SearchAds', 'CPI Mintegral', 'CPI TikTok', 'CPI UAC', 'CPI i-mobileAffiliate(CPI)', 'CPI UnityAds', 'CPI AppLovin', 'CPI TapjoyCPV', 'CPI Sanapchat']
+#        collection_cells = sales_summary.range(10, 96, 10, 105)
+#        for collection, fix in zip(collection_cells, fix_lines):
+#            print(str(collection.value) + " : " + str(fix))
+#            collection.value=fix
+#        sales_summary.update_cells(collection_cells, value_input_option='USER_ENTERED')
 
         # 書き込みデータ作成
         target_list=['']*29
