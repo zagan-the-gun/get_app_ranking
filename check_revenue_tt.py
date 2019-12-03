@@ -207,60 +207,64 @@ for revenue in sorted(sorted(apps_revenue, key=lambda x:x['app_id']), key=lambda
     if DEBUG:
         print(revenue['app_name'] + " : " + revenue['platform'] + " : " + revenue['ad_name'] + " : " + " : 広告収入 $" + str(REVENUE))
 
-    # Unity Ads出稿
+    # Unity Ads収入
     if revenue['ad_name'] == 'Unity Ads':
         target_cells[5].value=REVENUE
 
-    # nend出稿
+    # nend収入
 #    if revenue['ad_name'] == '':
 #        worksheet.update_cell(target.row, 9, REVENUE)
 
-    # Ad Generation出稿
+    # Ad Generation収入
     elif revenue['ad_name'] == 'Ad Generation':
         target_cells[9].value=REVENUE
 
-    # FIVE出稿
+    # FIVE収入
     elif revenue['ad_name'] == 'FIVE':
         target_cells[10].value=REVENUE
 
-    # Maio出稿
+    # Maio収入
     elif revenue['ad_name'] == 'Maio':
         target_cells[11].value=REVENUE
 
-    # i-mobile Affiliate出稿
+    # i-mobile Affiliate収入
     elif revenue['ad_name'] == 'i-mobile Affiliate':
         target_cells[12].value=REVENUE
 
-    # ironSource-Publisher出稿
+    # ironSource-Publisher収入
     elif revenue['ad_name'] == 'ironSource-Publisher':
         target_cells[14].value=REVENUE
 
-    # Tapjoy出稿
+    # Tapjoy収入
     elif revenue['ad_name'] == 'Tapjoy':
         target_cells[15].value=REVENUE
 
-    # Facebook Audience Network出稿
+    # Facebook Audience Network収入
     elif revenue['ad_name'] == 'Facebook Audience Network':
         target_cells[16].value=REVENUE
 
-    # Vungle出稿
+    # Vungle収入
     elif revenue['ad_name'] == 'Vungle':
         target_cells[29].value=REVENUE
 
-    # TikTok Audience Network出稿
+    # TikTok Audience Network収入
     elif revenue['ad_name'] == 'TikTok Audience Network':
         target_cells[34].value=REVENUE
 
-    # Mintegral Publisher出稿
+    # Mintegral Publisher収入
     elif revenue['ad_name'] == 'Mintegral Publisher':
         target_cells[35].value=REVENUE
 
-    # Google AdMob出稿
+    # inmobi収入
+    elif revenue['ad_name'] == 'inmobi':
+        target_cells[47].value=REVENUE
+
+    # Google AdMob収入
     elif revenue['ad_name'] == 'Google AdMob':
         if DEBUG:
             print(str(revenue['ad_name']) + " : " + str(REVENUE))
 
-    # Applovin出稿
+    # Applovin収入
     elif revenue['ad_name'] == 'Applovin':
         if DEBUG:
             print(str(revenue['ad_name']) + " : " + str(REVENUE))
