@@ -176,7 +176,7 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id'] or ""), key=lamb
             sleep(3)
             target = worksheet.find(str(CHECK_DATE))
             sleep(3)
-            target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
+            target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 51)
             target_cells[2].value=spend['app_name']
 
         # 無いので行を追加
@@ -212,7 +212,7 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id'] or ""), key=lamb
             target = worksheet.find(str(CHECK_DATE))
 
             sleep(4)
-            target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 44)
+            target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 51)
 
         except gspread.exceptions.APIError as e:
             with open(LOG, mode='a') as f:
