@@ -107,18 +107,29 @@ for retention in sorted(sorted(sorted(apps_retention, reverse=True, key=lambda x
     elif PREV_APP_ID == retention['app_id']:
         i = 1
     else:
-        PREV_APP_ID = retention['app_id']
         i = 0
+        PREV_APP_ID = retention['app_id']
         CHECK_DATE=(datetime.date.today())-datetime.timedelta(days=31)
 
-        # 区画を一気に書き込み
-        sleep(3)
-        target_cells2 = worksheet.range(11, 3, 41, 35)
-        for (target_cell, A) in zip(target_cells2, retention_cells):
-            target_cell.value=A
-        retention_cells=[]
-        sleep(2)
-        worksheet.update_cells(target_cells2, value_input_option='USER_ENTERED')
+        try:
+            # 区画を一気に書き込み
+            sleep(3)
+            target_cells2 = worksheet.range(11, 3, 41, 35)
+            for (target_cell, A) in zip(target_cells2, retention_cells):
+                target_cell.value=A
+            retention_cells=[]
+            sleep(2)
+            worksheet.update_cells(target_cells2, value_input_option='USER_ENTERED')
+        except gspread.exceptions.APIError as e:
+            with open(LOG, mode='a') as f:
+                f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_retention_tt : API制限 データ書き込み失敗 スキップ : " + str(CHECK_DATE) + " : " + SPREADSHEET_NAME + "\n")
+
+            if DEBUG:
+                print(type(e))
+                print("API制限 データ書き込み失敗 スキップ" + SPREADSHEET_NAME)
+
+            continue
+
 
     PREV_APP_ID = retention['app_id']
 
