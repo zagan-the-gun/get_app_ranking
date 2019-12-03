@@ -253,6 +253,10 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id'] or ""), key=lamb
         target_cells[43].value=0
         target_cells[44].value=0
         target_cells[45].value=0
+        target_cells[48].value=0
+        target_cells[49].value=0
+        target_cells[50].value=0
+        target_cells[51].value=0
 
     # spendをドルに戻す
     SPEND=round((spend['spend'] or 0)/100, 2)

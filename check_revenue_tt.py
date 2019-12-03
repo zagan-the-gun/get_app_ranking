@@ -201,6 +201,7 @@ for revenue in sorted(sorted(apps_revenue, key=lambda x:x['app_id']), key=lambda
         target_cells[29].value=0
         target_cells[34].value=0
         target_cells[35].value=0
+        target_cells[47].value=0
 
     # revenueをドルに戻す
     REVENUE=revenue['revenue']/100
