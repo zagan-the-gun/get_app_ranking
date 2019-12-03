@@ -324,6 +324,16 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id'] or ""), key=lamb
         target_cells[44].value=spend['installs']
         target_cells[45].value=SPEND
 
+    # inmobi出稿
+    elif spend['ad_name'] == 'inmobi':
+        target_cells[48].value=spend['installs']
+        target_cells[49].value=SPEND
+
+    # Adeal出稿
+    elif spend['ad_name'] == 'Adeal':
+        target_cells[50].value=spend['installs']
+        target_cells[51].value=SPEND
+
     else:
         print("DEBUG DEBUG DEBUG!")
         print(str(spend['ad_name']) + " : " + str(SPEND))
