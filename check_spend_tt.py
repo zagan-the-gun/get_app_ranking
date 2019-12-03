@@ -335,8 +335,12 @@ for spend in sorted(sorted(apps_spend, key=lambda x:x['app_id'] or ""), key=lamb
         target_cells[51].value=SPEND
 
     else:
-        print("DEBUG DEBUG DEBUG!")
-        print(str(spend['ad_name']) + " : " + str(SPEND))
+        with open(LOG, mode='a') as f:
+            f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_spend_tt : 新規アドネットワーク : " + str(spend['ad_name']) + " : " + str(SPEND) +  " : " + SPREADSHEET_NAME + "\n")
+
+        if DEBUG:
+            print("DEBUG DEBUG DEBUG!")
+            print(str(spend['ad_name']) + " : " + str(SPEND))
 
 with open(LOG, mode='a') as f:
     f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_spend_tt end\n")
