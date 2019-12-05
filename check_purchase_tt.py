@@ -28,6 +28,7 @@ DATE=int(args[7])
 LOG='/tmp/superset.log'
 DEBUG=False
 CHECK_DATE=(datetime.date.today())-datetime.timedelta(days=DATE)
+FILE_ID='1SEOARn8fSx5I5Tosq8fZ_Sl2BKxDmhowzFhZBW8CW1I'
 
 with open(LOG, mode='a') as f:
     f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_purchase_tt start : " + str(CHECK_DATE) + "\n")
@@ -50,8 +51,6 @@ gc = gspread.authorize(credentials)
 http = httplib2.Http(timeout=7200)
 http = credentials.authorize(http)
 service = build('drive', 'v3', http=http)
-
-FILE_ID='1ogWdNTKbLVfGGD7-EMrBWfbwXzu_swn7fqmQk2X-2Us'
 
 PREV_APP_ID=""
 # Redshiftから収入取得
