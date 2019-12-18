@@ -156,6 +156,7 @@ for aggregate in sorted(sorted(AGGREGATE, key=lambda x:x['app_id'] or ''), key=l
         PREV_APP_ID = aggregate['app_id']
 
         try:
+            sleep(1)
             worksheet.update_cells(target_cells, value_input_option='USER_ENTERED')
 
         except gspread.exceptions.APIError as e:
@@ -287,6 +288,14 @@ for aggregate in sorted(sorted(AGGREGATE, key=lambda x:x['app_id'] or ''), key=l
 #            sleep(4)
             sleep(3)
             sales_summary.append_row(reference_list, value_input_option='USER_ENTERED')
+
+            # 関数修正1 AS
+#            sleep(4)
+#            last_row=gspread.utils.a1_to_rowcol(last['updates']['updatedRange'].replace("'売上集計'!", ""))[0]
+#            collection_cells = sales_summary.range(11, 45, last_row, 45)
+#            for collection in collection_cells:
+#                collection.value='=INDIRECT(ADDRESS(row()-2,48,,,"集計シート"))'
+#            sales_summary.update_cells(collection_cells, value_input_option='USER_ENTERED')
 
             # 書き込みデータ作成
             target_list=['']*3
@@ -435,7 +444,8 @@ for aggregate in sorted(sorted(AGGREGATE, key=lambda x:x['app_id'] or ''), key=l
         elif aggregate['ad_name'] == 'inmobi':
             target_cells[47].value=REVENUE
 
-        elif (aggregate['ad_name'] == 'Google AdMob banner') and (aggregate['ad_name'] == 'Google AdMob interstitial') and (aggregate['ad_name'] == 'Applovin banner') and (aggregate['ad_name'] == 'Applovin interstitial'):
+        # 別集計のものは引っ掛けない
+        elif (aggregate['ad_name'] == 'Google AdMob banner') or (aggregate['ad_name'] == 'Google AdMob interstitial') or (aggregate['ad_name'] == 'Applovin banner') or (aggregate['ad_name'] == 'Applovin interstitial') or (aggregate['ad_name'] == 'Google AdMob') or (aggregate['ad_name'] == 'Applovin'):
             pass
 
         else:
