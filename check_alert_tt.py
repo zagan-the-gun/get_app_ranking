@@ -22,7 +22,6 @@ from time import sleep
 
 args = sys.argv
 
-print(str(args[1]))
 DATABASE_URL='postgresql://'+ args[1] + ':' + args[2] + '@'+ args[3] + ':5439/'+ args[4]
 SLACK_URL=args[5]
 KEYFILE_PATH=args[6]
@@ -32,6 +31,8 @@ DEBUG=False
 CHECK_DATE=(datetime.date.today())-datetime.timedelta(days=DATE)
 PREV_CHECK_DATE=(datetime.date.today())-datetime.timedelta(days=(DATE+2))
 FILE_ID='1SEOARn8fSx5I5Tosq8fZ_Sl2BKxDmhowzFhZBW8CW1I'
+
+print(str(CHECK_DATE) + " : " + str(PREV_CHECK_DATE))
 
 with open(LOG, mode='a') as f:
     f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_alert_tt start : " + str(CHECK_DATE) + "\n")
@@ -100,6 +101,9 @@ for aggregate in sorted(sorted(AGGREGATE, key=lambda x:x['app_id'] or ''), key=l
             results = service.files().list(q="fullText contains '{}'".format(aggregate['app_id']), pageSize=1).execute()
             SPREADSHEET_KEY=results['files'][0]['id']
 
+            if DEBUG:
+                print("Tenjin APP_ID 検索結果 NAME: " + results['files'][0]['name'] + " ID: " + results['files'][0]['id'])
+
             print("Tenjin APP_ID 検索結果 NAME: " + results['files'][0]['name'] + " ID: " + results['files'][0]['id'])
 
             sleep(1)
@@ -129,21 +133,24 @@ for aggregate in sorted(sorted(AGGREGATE, key=lambda x:x['app_id'] or ''), key=l
         # 当日行取得、無ければ作る
         try:
             sleep(1)
-            target = worksheet.find(str(CHECK_DATE))
-            sleep(1)
-            target_cells = worksheet.range(target.row, target.col + 108, target.row, target.col + 108)
-            aldau=float(target_cells[0].value.replace("¥", ""))
-
-            sleep(1)
             prev_target = worksheet.find(str(PREV_CHECK_DATE))
             sleep(1)
             prev_target_cells = worksheet.range(prev_target.row, prev_target.col + 108, prev_target.row, prev_target.col + 108)
             prev_aldau=float(prev_target_cells[0].value.replace("¥", ""))
-            print("AdMob レクタングル DAU貢献度警告 2日前比 -10円を超えています : {} : {}円".format(aggregate['app_name'], str(round(prev_aldau-aldau, 2))))
+            print(str(prev_target_cells[0].value))
 
-            if round(prev_aldau-aldau, 2) < -10.0:
+            sleep(1)
+            target = worksheet.find(str(CHECK_DATE))
+            sleep(1)
+            target_cells = worksheet.range(target.row, target.col + 108, target.row, target.col + 108)
+            aldau=float(target_cells[0].value.replace("¥", ""))
+            print(str(target_cells[0].value))
+
+            print("警告 : AdMob レクタングル DAU貢献度 2日前比 -10円を超えています : {} : {}円".format(SPREADSHEET_NAME, str(round(aldau-prev_aldau, 2))))
+
+            if round(aldau-prev_aldau, 2) < -10.0:
                 data = json.dumps({
-                    'text': "AdMob レクタングル DAU貢献度警告 2日前比 -10円を超えています : {} : {}円".format(aggregate['app_name'], str(round(prev_aldau-aldau, 2))),  #通知内容
+                    'text': "警告 : AdMob レクタングル DAU貢献度 2日前比 -10円を超えています : {} : {}円".format(SPREADSHEET_NAME, str(round(aldau-prev_aldau, 2))),  #通知内容
                     'username': u'人格を喪失した林家パー子',  #ユーザー名
 #                    'icon_emoji': u':smile_cat:',  #アイコン
                     'link_names': 1,  #名前をリンク化
