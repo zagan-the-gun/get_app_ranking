@@ -156,7 +156,7 @@ for aggregate in sorted(sorted(AGGREGATE, key=lambda x:x['app_id'] or ''), key=l
         PREV_APP_ID = aggregate['app_id']
 
         try:
-            sleep(1)
+            sleep(2)
             worksheet.update_cells(target_cells, value_input_option='USER_ENTERED')
 
         except gspread.exceptions.APIError as e:
@@ -186,14 +186,14 @@ for aggregate in sorted(sorted(AGGREGATE, key=lambda x:x['app_id'] or ''), key=l
         # Googleスプレッドシートを開く無ければ作成
         try:
             # Tenjin の APP_ID からファイルを検索してIDゲット
-            sleep(1)
+            sleep(2)
             results = service.files().list(q="fullText contains '{}'".format(aggregate['app_id']), pageSize=1).execute()
             SPREADSHEET_KEY=results['files'][0]['id']
 
             print("Tenjin APP_ID 検索結果 NAME: " + results['files'][0]['name'] + " ID: " + results['files'][0]['id'])
 
 #            sleep(4)
-            sleep(1)
+            sleep(2)
             # 昔はファイル名で開いてました
 #            worksheet = gc.open(SPREADSHEET_NAME).worksheet("集計シート")
             #Tenjinのapp_id検索して開く
@@ -253,17 +253,17 @@ for aggregate in sorted(sorted(AGGREGATE, key=lambda x:x['app_id'] or ''), key=l
             sleep(2)
             app_id_cells = worksheet.range(4, 2, 5, 2)
             app_id_cells[0].value='Tenjin app_id'
-            app_id_cells[1].value=event['app_id']
+            app_id_cells[1].value=aggregate['app_id']
             sleep(2)
             worksheet.update_cells(app_id_cells, value_input_option='USER_ENTERED')
 
         # 当日行取得、無ければ作る
         try:
 #            sleep(3)
-            sleep(1)
+            sleep(2)
             target = worksheet.find(str(CHECK_DATE))
 #            sleep(3)
-            sleep(1)
+            sleep(2)
             target_cells = worksheet.range(target.row, target.col - 1, target.row, target.col + 51)
             target_cells[2].value=aggregate['app_name']
 
@@ -275,8 +275,7 @@ for aggregate in sorted(sorted(AGGREGATE, key=lambda x:x['app_id'] or ''), key=l
                 print(e)
 
             # 売上集計シートに行追加
-#            sleep(4)
-            sleep(3)
+            sleep(4)
             sales_summary = gc.open(SPREADSHEET_NAME).worksheet("売上集計")
             # リファレンス行をコピー
 #            sleep(4)
