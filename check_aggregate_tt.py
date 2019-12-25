@@ -30,7 +30,7 @@ DATE=int(args[7])
 LOG='/tmp/superset.log'
 DEBUG=True
 CHECK_DATE=(datetime.date.today())-datetime.timedelta(days=DATE)
-FILE_ID='1SEOARn8fSx5I5Tosq8fZ_Sl2BKxDmhowzFhZBW8CW1I'
+FILE_ID='1Tnl2EgCSf1cWWfHhKj8I5byc_7guO5svCJYHr-eZt-M'
 
 with open(LOG, mode='a') as f:
     f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_aggregate_tt start : " + str(CHECK_DATE) + "\n")
