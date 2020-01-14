@@ -113,6 +113,24 @@ for revenue_detail in sorted(sorted(apps_revenue_detail, key=lambda x:x['app_id'
 
         al_interstitial=(al_interstitial or 0) + float(revenue_detail['interstitial_revenue']) + float(revenue_detail['video_revenue']) + float(revenue_detail['other_revenue'])
 
+else:
+    AGGREGATE.append({'app_id': str(APP_ID), 'bundle_id': str(BUNDLE_ID), 'app_name': str(APP_NAME), 'platform': str(PLATFORM), 'ad_name': 'Google AdMob interstitial', 'date': str(DATE), 'revenue': ga_interstitial/100, 'spend': 0, 'dau': '', 'install': '', 'purchase': 0})
+    AGGREGATE.append({'app_id': str(APP_ID), 'bundle_id': str(BUNDLE_ID), 'app_name': str(APP_NAME), 'platform': str(PLATFORM), 'ad_name': 'Google AdMob banner', 'date': str(DATE), 'revenue': ga_banner/100, 'spend': 0, 'dau': '', 'install': '', 'purchase': 0})
+    AGGREGATE.append({'app_id': str(APP_ID), 'bundle_id': str(BUNDLE_ID), 'app_name': str(APP_NAME), 'platform': str(PLATFORM), 'ad_name': 'Applovin interstitial', 'date': str(DATE), 'revenue': al_interstitial/100, 'spend': 0, 'dau': '', 'install': '', 'purchase': 0})
+    AGGREGATE.append({'app_id': str(APP_ID), 'bundle_id': str(BUNDLE_ID), 'app_name': str(APP_NAME), 'platform': str(PLATFORM), 'ad_name': 'Applovin banner', 'date': str(DATE), 'revenue': al_banner/100, 'spend': 0, 'dau': '', 'install': '', 'purchase': 0})
+#    print("AGGREGATE.append:")
+#    print(AGGREGATE[-1])
+    APP_ID=''
+    APP_NAME=''
+    BUNDLE_ID=''
+    PLATFORM=''
+    DATE=''
+    ga_interstitial=0
+    ga_banner=0
+    al_interstitial=0
+    al_banner=0
+
+
 # spendブッ込み
 apps_spend=get_dict_resultset("\
         SELECT a.id AS app_id, a.name AS app_name, store_id, a.platform AS platform, bundle_id, ad.id AS ad_id, ad.name AS ad_name, rm.date, Sum(reported_spend) AS spend, Sum(tracked_installs) AS installs \
@@ -578,6 +596,20 @@ for aggregate in sorted(sorted(AGGREGATE, key=lambda x:x['app_id'] or ''), key=l
             print(aggregate['app_name'] + " : " + aggregate['platform'] + " : " + aggregate['ad_name'] + " : 課金収入 $" + str(aggregate['purchase']))
 
         target_cells[46].value=aggregate['purchase']
+
+else:
+    try:
+        sleep(3)
+        worksheet.update_cells(target_cells, value_input_option='USER_ENTERED')
+
+    except gspread.exceptions.APIError as e:
+        with open(LOG, mode='a') as f:
+            f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_aggregate_tt : API制限 データ書き込み失敗 スキップ : " + str(CHECK_DATE) + " : " + SPREADSHEET_NAME + "\n")
+
+        if DEBUG:
+            print(type(e))
+            print("API制限 データ書き込み失敗 スキップ" + SPREADSHEET_NAME)
+
 
 with open(LOG, mode='a') as f:
     f.write(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+": check_aggregate_tt end\n")
