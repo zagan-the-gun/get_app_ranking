@@ -450,7 +450,7 @@ for aggregate in sorted(sorted(AGGREGATE, key=lambda x:x['app_id'] or ''), key=l
             target_cells[29].value=REVENUE
 
         # TikTok Audience Network収入
-        elif aggregate['ad_name'] == 'TikTok Audience Network':
+        elif aggregate['ad_name'] == 'Pangle':
             target_cells[34].value=REVENUE
 
         # Mintegral Publisher収入
