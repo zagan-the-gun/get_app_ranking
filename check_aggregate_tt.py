@@ -413,9 +413,9 @@ for aggregate in sorted(sorted(AGGREGATE, key=lambda x:x['app_id'] or ''), key=l
         if aggregate['ad_name'] == 'Unity Ads':
             target_cells[5].value=REVENUE
 
-        # nend収入
-    #    if aggregate['ad_name'] == '':
-    #        worksheet.update_cell(target.row, 9, REVENUE)
+        # Nend収入
+        if aggregate['ad_name'] == 'Nend':
+            target_cells[8].value=REVENUE
 
         # Ad Generation収入
         elif aggregate['ad_name'] == 'Ad Generation':
